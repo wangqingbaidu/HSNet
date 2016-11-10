@@ -115,7 +115,7 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
     {
     nets[i].upperbound = upperbound;
     nets[i].lowerbound = lowerbound;
-    nets[i].early_stop = early_stop
+    nets[i].early_stop = early_stop;
     }
 
     char **labels = get_labels(label_list);

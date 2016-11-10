@@ -108,10 +108,14 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
     //upperbound and lowerbound of threshold
     float upperbound = option_find_float(options, "upperbound", .9);
     float lowerbound = option_find_float(options, "lowerbound", .1);
+
+    //Use early stop or not
+    int early_stop = option_find_int(options, "early_stop", 1);
     for (i = 0; i < ngpus; i++)
     {
     nets[i].upperbound = upperbound;
     nets[i].lowerbound = lowerbound;
+    nets[i].early_stop = early_stop
     }
 
     char **labels = get_labels(label_list);
@@ -217,6 +221,9 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
     net.upperbound = upperbound;
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
 
     int classes = option_find_int(options, "classes", 2);
 
@@ -330,6 +337,9 @@ void validate_classifier_crop(char *datacfg, char *filename, char *weightfile)
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f\n", net.upperbound, net.lowerbound);
 
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
+
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
 
@@ -404,6 +414,9 @@ void validate_classifier_10(char *datacfg, char *filename, char *weightfile)
     net.upperbound = upperbound;
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f\n", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
@@ -485,6 +498,9 @@ void validate_classifier_full(char *datacfg, char *filename, char *weightfile)
     net.upperbound = upperbound;
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f\n", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
@@ -578,6 +594,9 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f\n", net.upperbound, net.lowerbound);
 
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
+
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
 
@@ -650,6 +669,9 @@ void validate_classifier_multi(char *datacfg, char *filename, char *weightfile)
     net.upperbound = upperbound;
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f\n", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
@@ -806,6 +828,9 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
     net.lowerbound = lowerbound;
     printf("threshold of network is upper %.4f lower %.4f", net.upperbound, net.lowerbound);
 
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
+
 
     int i = 0;
     char **names = get_labels(name_list);
@@ -861,6 +886,17 @@ void label_classifier(char *datacfg, char *filename, char *weightfile)
 
     char *label_list = option_find_str(options, "names", "data/labels.list");
     char *test_list = option_find_str(options, "test", "data/train.list");
+
+    //upperbound and lowerbound of threshold
+    float upperbound = option_find_float(options, "upperbound", .9);
+    float lowerbound = option_find_float(options, "lowerbound", .1);
+    net.upperbound = upperbound;
+    net.lowerbound = lowerbound;
+    printf("threshold of network is upper %.4f lower %.4f", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
+
     int classes = option_find_int(options, "classes", 2);
 
     char **labels = get_labels(label_list);
@@ -896,6 +932,16 @@ void test_classifier(char *datacfg, char *cfgfile, char *weightfile, int target_
     srand(time(0));
 
     list *options = read_data_cfg(datacfg);
+
+    //upperbound and lowerbound of threshold
+    float upperbound = option_find_float(options, "upperbound", .9);
+    float lowerbound = option_find_float(options, "lowerbound", .1);
+    net.upperbound = upperbound;
+    net.lowerbound = lowerbound;
+    printf("threshold of network is upper %.4f lower %.4f", net.upperbound, net.lowerbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
 
     char *test_list = option_find_str(options, "test", "data/test.list");
     int classes = option_find_int(options, "classes", 2);

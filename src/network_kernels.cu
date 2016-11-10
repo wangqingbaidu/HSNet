@@ -106,7 +106,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
         state.input = l.output_gpu;
         
         flag[i] = 1;
-        if (net.  l.type == COST)
+        if (net.early_stop &&  l.type == COST)
         {
 //        	float* out = (float*)calloc(net.layers[i - 1].outputs*net.layers[i - 1].batch, sizeof(float));
 //          cuda_copy_array(net.layers[i - 1].output_gpu, out, net.layers[i - 1].outputs*net.layers[i - 1].batch);

@@ -640,7 +640,7 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
             if(indexes[j] == class) avg_topk += 1;
         }
 
-        if (indexes[0] != class)
+        if (indexes[0] != class || i == m - 1)
         	fprintf(logfile, "%d: ture class: %d, predict to be %d of precision %.6f \t top 1: %f, top %d: %f\n",
         			i, class, indexes[0], pred[indexes[0]], avg_acc/(i+1), topk, avg_topk/(i+1));
 

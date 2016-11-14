@@ -125,17 +125,17 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				upper = upper > net.upperbound ? net.upperbound : upper;
 				lower = lower < net.lowerbound ? net.lowerbound : lower;
         	}
-//        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, upper, lower);
+        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, upper, lower);
         	if(out[indexes] >= upper || out[indexes] <= lower)
         	{
-//        		printf("----------------------------STOP!\n");
+        		printf("----------------------------STOP!\n");
         		break;
         	}
         	else
         	{
         		if (i != net.n - 1)
 				{
-//        			printf("----------------------------DOESN'T STOP!\n");
+        			printf("----------------------------DOESN'T STOP!\n");
         			int i_forward = i;
 					//Cost layer set to be false
 					flag[i_forward--] = 0;
@@ -147,7 +147,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				}
         		else
         		{
-//        			printf("----------------------------STOP!\n");
+        			printf("----------------------------STOP!\n");
         		}
         	}
         }

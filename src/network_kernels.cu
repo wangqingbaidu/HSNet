@@ -138,7 +138,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
         	}
 			if (i != net.n - 1)
 			{
-				if (net.print2console)
+				if (net.early_stop && net.print2console)
 					printf("----------------------------DOESN'T STOP!\n");
 				int i_forward = i;
 				//Cost layer set to be false
@@ -151,13 +151,13 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 			}
 			else
 			{
-				if (net.print2console)
+				if (net.early_stop && net.print2console)
 					printf("----------------------------STOP!\n");
 			}
         }
     }    
 
-	if (net.print2console)
+	if (net.early_stop && net.print2console)
 	{
 		printf("layer");
 		int total_ignored = 0;

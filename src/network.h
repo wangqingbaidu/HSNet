@@ -63,6 +63,9 @@ typedef struct network{
     //Use early stop or not
     int early_stop;
 
+    //print to console
+    int print2console;
+
     #ifdef GPU
     float **input_gpu;
     float **truth_gpu;

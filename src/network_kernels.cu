@@ -125,17 +125,20 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				upper = upper > net.upperbound ? net.upperbound : upper;
 				lower = lower < net.lowerbound ? net.lowerbound : lower;
         	}
-        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, lower, upper);
+        	if (net.print2console)
+        		printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, lower, upper);
         	if(out[indexes] >= upper || out[indexes] <= lower)
         	{
-        		printf("----------------------------STOP!\n");
+            	if (net.print2console)
+            		printf("----------------------------STOP!\n");
         		break;
         	}
         	else
         	{
         		if (i != net.n - 1)
 				{
-        			printf("----------------------------DOESN'T STOP!\n");
+                	if (net.print2console)
+                		printf("----------------------------DOESN'T STOP!\n");
         			int i_forward = i;
 					//Cost layer set to be false
 					flag[i_forward--] = 0;
@@ -147,16 +150,28 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				}
         		else
         		{
-        			printf("----------------------------STOP!\n");
+                	if (net.print2console)
+                		printf("----------------------------STOP!\n");
         		}
         	}
         }
     }    
-    printf("layer");
-    for (i = 0; i < net.n; i++)
-    	if (!flag[i])
-    		printf(" %d", i);
-    printf(" is ignored!\n");
+
+	if (net.print2console)
+	{
+		printf("layer");
+		int total_ignored = 0;
+		for (i = 0; i < net.n; i++)
+			if (!flag[i])
+			{
+				printf(" %d", i);
+				total_ignored++;
+			}
+		if (total_ignored)
+			printf(" is ignored!\n");
+		else
+			printf("None is ignored!\n");
+	}
 }
 
 void backward_network_gpu_use_flag(network net, network_state state, int* flag)

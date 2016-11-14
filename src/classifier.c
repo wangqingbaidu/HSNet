@@ -597,6 +597,9 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
     //Use early stop or not
     net.early_stop = option_find_int(options, "early_stop", 1);
 
+    //Whether print info to console
+    net.print2console = option_find_int(options, "console", 0);
+
     char **labels = get_labels(label_list);
     list *plist = get_paths(valid_list);
 
@@ -640,6 +643,11 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
         if (indexes[0] != class)
         	fprintf(logfile, "%d: ture class: %d, predict to be %d of precision %.6f \t top 1: %f, top %d: %f\n",
         			i, class, indexes[0], pred[indexes[0]], avg_acc/(i+1), topk, avg_topk/(i+1));
+
+        if (net.print2console)
+        	printf("%d: ture class: %d, predict to be %d of precision %.6f \t top 1: %f, top %d: %f\n",
+        			i, class, indexes[0], pred[indexes[0]], avg_acc/(i+1), topk, avg_topk/(i+1));
+
     }
 
     fprintf(logfile, "Predicted in %f seconds.\n", sec(clock()-time));

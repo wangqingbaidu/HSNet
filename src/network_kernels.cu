@@ -106,54 +106,54 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
         state.input = l.output_gpu;
         
         flag[i] = 1;
-        if (net.early_stop &&  l.type == COST)
+        if (l.type == COST)
         {
 //        	float* out = (float*)calloc(net.layers[i - 1].outputs*net.layers[i - 1].batch, sizeof(float));
 //          cuda_copy_array(net.layers[i - 1].output_gpu, out, net.layers[i - 1].outputs*net.layers[i - 1].batch);
-        	float* out = get_network_output_layer_gpu(net, i - 1);
-        	int size = net.layers[i - 1].outputs;
-        	int indexes;
-        	float upper = net.upperbound;
-        	float lower = net.lowerbound;
-        	top_k(out, size, 1, &indexes);
-        	if(isTrain)
+        	if (net.early_stop)
         	{
-				float precentage = (float)(*net.seen) / net.N / 50;
-	//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
-				upper = (net.upperbound - 0.5) * precentage + 0.5;
-				lower = 0.5 - (0.5 - net.lowerbound) * precentage;
-				upper = upper > net.upperbound ? net.upperbound : upper;
-				lower = lower < net.lowerbound ? net.lowerbound : lower;
-        	}
-        	if (net.print2console)
-        		printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, lower, upper);
-        	if(out[indexes] >= upper || out[indexes] <= lower)
-        	{
-            	if (net.print2console)
-            		printf("----------------------------STOP!\n");
-        		break;
-        	}
-        	else
-        	{
-        		if (i != net.n - 1)
+				float* out = get_network_output_layer_gpu(net, i - 1);
+				int size = net.layers[i - 1].outputs;
+				int indexes;
+				float upper = net.upperbound;
+				float lower = net.lowerbound;
+				top_k(out, size, 1, &indexes);
+				if(isTrain)
 				{
-                	if (net.print2console)
-                		printf("----------------------------DOESN'T STOP!\n");
-        			int i_forward = i;
-					//Cost layer set to be false
-					flag[i_forward--] = 0;
-					while(net.layers[i_forward].type != CONVOLUTIONAL)
-						flag[i_forward--] = 0;
-					//last fully convolutional layer set to be false
-					flag[i_forward--] = 0;
-					state.input = net.layers[i_forward].output_gpu;
+					float precentage = (float)(*net.seen) / net.N / 50;
+		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
+					upper = (net.upperbound - 0.5) * precentage + 0.5;
+					lower = 0.5 - (0.5 - net.lowerbound) * precentage;
+					upper = upper > net.upperbound ? net.upperbound : upper;
+					lower = lower < net.lowerbound ? net.lowerbound : lower;
 				}
-        		else
-        		{
-                	if (net.print2console)
-                		printf("----------------------------STOP!\n");
-        		}
+				if (net.print2console)
+					printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, lower, upper);
+				if(out[indexes] >= upper || out[indexes] <= lower)
+				{
+					if (net.print2console)
+						printf("----------------------------STOP!\n");
+					break;
+				}
         	}
+			if (i != net.n - 1)
+			{
+				if (net.print2console)
+					printf("----------------------------DOESN'T STOP!\n");
+				int i_forward = i;
+				//Cost layer set to be false
+				flag[i_forward--] = 0;
+				while(net.layers[i_forward].type != CONVOLUTIONAL)
+					flag[i_forward--] = 0;
+				//last fully convolutional layer set to be false
+				flag[i_forward--] = 0;
+				state.input = net.layers[i_forward].output_gpu;
+			}
+			else
+			{
+				if (net.print2console)
+					printf("----------------------------STOP!\n");
+			}
         }
     }    
 

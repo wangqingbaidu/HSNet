@@ -152,11 +152,11 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
         	}
         }
     }    
-//    printf("layer");
-//    for (i = 0; i < net.n; i++)
-//    	if (!flag[i])
-//    		printf(" %d", i);
-//    printf(" is ignored!\n");
+    printf("layer");
+    for (i = 0; i < net.n; i++)
+    	if (!flag[i])
+    		printf(" %d", i);
+    printf(" is ignored!\n");
 }
 
 void backward_network_gpu_use_flag(network net, network_state state, int* flag)

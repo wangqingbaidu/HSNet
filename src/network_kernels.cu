@@ -121,9 +121,10 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				if(isTrain)
 				{
 					float precentage = (float)(*net.seen) / net.N / 50;
+					float prob_rand = 1 / net.nclasses;
 		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
-					upper = (net.upperbound - 0.5) * precentage + 0.5;
-					lower = 0.5 - (0.5 - net.lowerbound) * precentage;
+					upper = (net.upperbound - prob_rand) * precentage + prob_rand;
+					lower = prob_rand - (prob_rand - net.lowerbound) * precentage;
 					upper = upper > net.upperbound ? net.upperbound : upper;
 					lower = lower < net.lowerbound ? net.lowerbound : lower;
 				}

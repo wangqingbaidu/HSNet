@@ -80,24 +80,6 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
     printf("%d\n", ngpus);
     network *nets = calloc(ngpus, sizeof(network));
 
-    srand(time(0));
-    int seed = rand();
-    for(i = 0; i < ngpus; ++i){
-        srand(seed);
-        cuda_set_device(gpus[i]);
-        nets[i] = parse_network_cfg(cfgfile);
-        if(weightfile){
-            load_weights(&nets[i], weightfile);
-        }
-        if(clear) *nets[i].seen = 0;
-        nets[i].learning_rate *= ngpus;
-    }
-    srand(time(0));
-    network net = nets[0];
-
-    int imgs = net.batch * net.subdivisions * ngpus;
-
-    printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net.learning_rate, net.momentum, net.decay);
     list *options = read_data_cfg(datacfg);
 
     char *backup_directory = option_find_str(options, "backup", "/backup/");
@@ -117,6 +99,26 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
     nets[i].lowerbound = lowerbound;
     nets[i].early_stop = early_stop;
     }
+
+    srand(time(0));
+    int seed = rand();
+    for(i = 0; i < ngpus; ++i){
+        srand(seed);
+        cuda_set_device(gpus[i]);
+        nets[i] = parse_network_cfg(cfgfile);
+        if(weightfile){
+            load_weights(&nets[i], weightfile);
+        }
+        if(clear) *nets[i].seen = 0;
+        nets[i].learning_rate *= ngpus;
+        net[i].nclasses = classes;
+    }
+    srand(time(0));
+    network net = nets[0];
+
+    int imgs = net.batch * net.subdivisions * ngpus;
+
+    printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net.learning_rate, net.momentum, net.decay);
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(train_list);
@@ -226,6 +228,7 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
     net.early_stop = option_find_int(options, "early_stop", 1);
 
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(train_list);
@@ -328,6 +331,7 @@ void validate_classifier_crop(char *datacfg, char *filename, char *weightfile)
     char *label_list = option_find_str(options, "labels", "data/labels.list");
     char *valid_list = option_find_str(options, "valid", "data/train.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
 
     //upperbound and lowerbound of threshold
@@ -406,6 +410,7 @@ void validate_classifier_10(char *datacfg, char *filename, char *weightfile)
     char *label_list = option_find_str(options, "labels", "data/labels.list");
     char *valid_list = option_find_str(options, "valid", "data/train.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
 
     //upperbound and lowerbound of threshold
@@ -490,6 +495,7 @@ void validate_classifier_full(char *datacfg, char *filename, char *weightfile)
     char *label_list = option_find_str(options, "labels", "data/labels.list");
     char *valid_list = option_find_str(options, "valid", "data/train.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
 
     //upperbound and lowerbound of threshold
@@ -585,6 +591,7 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
     if(leaf_list) change_leaves(net.hierarchy, leaf_list);
     char *valid_list = option_find_str(options, "valid", "data/train.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
 
     //upperbound and lowerbound of threshold
@@ -669,6 +676,7 @@ void validate_classifier_multi(char *datacfg, char *filename, char *weightfile)
     char *label_list = option_find_str(options, "labels", "data/labels.list");
     char *valid_list = option_find_str(options, "valid", "data/train.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
 
     //upperbound and lowerbound of threshold
@@ -953,6 +961,7 @@ void test_classifier(char *datacfg, char *cfgfile, char *weightfile, int target_
 
     char *test_list = option_find_str(options, "test", "data/test.list");
     int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
 
     list *plist = get_paths(test_list);
 

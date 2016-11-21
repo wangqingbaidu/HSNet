@@ -111,7 +111,7 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
         }
         if(clear) *nets[i].seen = 0;
         nets[i].learning_rate *= ngpus;
-        net[i].nclasses = classes;
+        nets[i].nclasses = classes;
     }
     srand(time(0));
     network net = nets[0];

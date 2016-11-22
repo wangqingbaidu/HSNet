@@ -122,8 +122,6 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 					upper = (net.upperbound - prob_rand) * precentage + prob_rand;
 					upper = upper > net.upperbound ? net.upperbound : upper;
 				}
-				else
-				
 				//if train use voting to deciside whether to stop
 				//else use one sample.
 				float* out = get_network_output_layer_gpu(net, i - 1);

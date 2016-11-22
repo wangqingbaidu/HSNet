@@ -112,25 +112,46 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 //          cuda_copy_array(net.layers[i - 1].output_gpu, out, net.layers[i - 1].outputs*net.layers[i - 1].batch);
         	if (net.early_stop)
         	{
-				float* out = get_network_output_layer_gpu(net, i - 1);
-				int size = net.layers[i - 1].outputs;
-				int indexes;
+        		//get upper threashold
 				float upper = net.upperbound;
-				float lower = net.lowerbound;
-				top_k(out, size, 1, &indexes);
 				if(isTrain)
 				{
 					float precentage = (float)(*net.seen) / net.N / 50;
 					float prob_rand = 1.0 / net.nclasses;
 		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
 					upper = (net.upperbound - prob_rand) * precentage + prob_rand;
-					lower = prob_rand - (prob_rand - net.lowerbound) * precentage;
 					upper = upper > net.upperbound ? net.upperbound : upper;
-					lower = lower < net.lowerbound ? net.lowerbound : lower;
 				}
+				else
+				
+				//if train use voting to deciside whether to stop
+				//else use one sample.
+				float* out = get_network_output_layer_gpu(net, i - 1);
+				int outputs = net.layers[i - 1].outputs;
+				int batch_size = net.batch;
+				int indexes;
+				
+				int b;
+				int early_stop_number = 0;
+				float mean_prob = 0
+				for (b = 0; b < batch_size; b++)
+				{
+					top_k(out + outputs * b, outputs, 1, &indexes);
+					if(out[indexes + outputs * b, outputs] >= upper)
+					{
+						early_stop_number++;
+						mean_prob += out[indexes + outputs * b, outputs];
+					}
+				}
+				
 				if (net.print2console)
-					printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, lower, upper);
-				if(out[indexes] >= upper || out[indexes] <= lower)
+					if (batch_size == 1)
+						printf("Cost layer AT %d with probability %.6f of type %d and threshold: %.6f", i, out[indexes], indexes, upper);
+					else
+						printf("Cost layer AT %d higher than threshold: %.6f with mean probability %.6f of %d samples", 
+								i, upper, mean_prob / batch_size, early_stop_number);
+						
+				if(early_stop_number >= batch_size / 2)
 				{
 					if (net.print2console)
 						printf("----------------------------STOP!\n");

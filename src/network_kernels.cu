@@ -179,7 +179,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 
 	if (net.early_stop && net.print2console)
 	{
-		printf("layer");
+		printf("Layer");
 		int total_ignored = 0;
 		for (i = 0; i < net.n; i++)
 			if (!flag[i])

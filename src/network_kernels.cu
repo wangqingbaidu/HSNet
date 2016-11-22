@@ -133,7 +133,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				
 				int b;
 				int early_stop_number = 0;
-				float mean_prob = 0
+				float mean_prob = 0;
 				for (b = 0; b < batch_size; b++)
 				{
 					top_k(out + outputs * b, outputs, 1, &indexes);

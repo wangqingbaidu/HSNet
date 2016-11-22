@@ -90,14 +90,16 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
     //upperbound and lowerbound of threshold
     float upperbound = option_find_float(options, "upperbound", .9);
     float lowerbound = option_find_float(options, "lowerbound", .1);
-
+    //Whether print info to console
+    int print2console = option_find_int(options, "console", 0);
     //Use early stop or not
     int early_stop = option_find_int(options, "early_stop", 1);
     for (i = 0; i < ngpus; i++)
     {
-    nets[i].upperbound = upperbound;
-    nets[i].lowerbound = lowerbound;
-    nets[i].early_stop = early_stop;
+		nets[i].upperbound = upperbound;
+		nets[i].lowerbound = lowerbound;
+		nets[i].early_stop = early_stop;
+		nets[i].print2console = print2console;
     }
 
     srand(time(0));
@@ -229,6 +231,9 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
 
     int classes = option_find_int(options, "classes", 2);
     net.nclasses = classes;
+
+    //Whether print info to console
+    net.print2console = option_find_int(options, "console", 0);
 
     char **labels = get_labels(label_list);
     list *plist = get_paths(train_list);

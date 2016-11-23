@@ -121,7 +121,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
 					upper = (net.upperbound - prob_rand) * precentage + prob_rand;
 //					upper = upper > net.upperbound ? net.upperbound : upper;
-					upper = upper > 1.0 ? 1.0 :¡¡upper;
+					upper = upper > 1.0 ? 1.0 : upper;
 				}
 				//if train use voting to deciside whether to stop
 				//else use one sample.

@@ -116,7 +116,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				float upper = net.upperbound;
 				if(isTrain)
 				{
-					float percentage = (float)(*net.seen) / net.N / 150;
+					float percentage = (float)(*net.seen) / net.N / 1;
 					float prob_rand = 1.0 / net.nclasses;
 		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
 					upper = (net.upperbound - prob_rand) * percentage + prob_rand;
@@ -128,7 +128,6 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				//if train use voting to deciside whether to stop
 				//else use one sample.
 				float* out = get_network_output_layer_gpu(net, i - 1);
-				printf("out[0]:%6.6f\n", float(*out));
 				int outputs = net.layers[i - 1].outputs;
 				int batch_size = net.batch;
 				int indexes;
@@ -138,9 +137,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				float mean_prob = 0;
 				for (b = 0; b < batch_size; b++)
 				{
-					printf("outs:%d\tb:%d\t", outputs, b);
 					top_k(out + outputs * b, outputs, 1, &indexes);
-					printf("prob:%f\n", out[indexes]);
 					if(out[indexes + outputs * b] >= upper)
 					{
 						early_stop_number++;
@@ -153,7 +150,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 						printf("Cost layer AT %d with probability %.6f of type %d and threshold: %.6f", i, out[indexes], indexes, upper);
 					else
 						printf("Cost layer AT %d higher than threshold: %.6f with mean probability %.6f of %d samples", 
-								i, upper, mean_prob / early_stop_number, early_stop_number);
+								i, upper, mean_prob /(early_stop_number + 0.000001), early_stop_number);
 						
 				if(early_stop_number > batch_size / 2)
 				{

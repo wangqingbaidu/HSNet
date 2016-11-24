@@ -137,7 +137,9 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				float mean_prob = 0;
 				for (b = 0; b < batch_size; b++)
 				{
+					printf("outs:%d\tb:%d\t", outputs, b);
 					top_k(out + outputs * b, outputs, 1, &indexes);
+					printf("prob:%f\n", out[indexes]);
 					if(out[indexes + outputs * b] >= upper)
 					{
 						early_stop_number++;

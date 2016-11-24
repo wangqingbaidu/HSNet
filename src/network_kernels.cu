@@ -128,7 +128,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				//if train use voting to deciside whether to stop
 				//else use one sample.
 				float* out = get_network_output_layer_gpu(net, i - 1);
-				printf("out[0]:%f\n", out[5]);
+				printf("out[0]:%d\n", out);
 				int outputs = net.layers[i - 1].outputs;
 				int batch_size = net.batch;
 				int indexes;

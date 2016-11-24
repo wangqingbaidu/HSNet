@@ -277,12 +277,12 @@ void backward_network_gpu_use_flag(network net, network_state state, int* flag)
     	if (flag[i]) break;
     last_layer = i;
     
-    for(i = last_layer; i > 0; i--)
-    	if (!flag[i - 1]) break;
+    for(i = last_layer; i >= 0; i--)
+    	if (!flag[i]) break;
     first_layer = i;
     
     printf("Backward and Update layer:");
-    for(i = last_layer; i >= first_layer; --i){    
+    for(i = last_layer; i > first_layer; --i){    
     	printf(" %d", i);
     	
         state.index = i;
@@ -311,11 +311,11 @@ void update_network_gpu_use_flag(network net, int* flag)
     	if (flag[i]) break;
     last_layer = i;
     
-    for(i = last_layer; i > 0; i--)
-    	if (!flag[i - 1]) break;
+    for(i = last_layer; i >= 0; i--)
+    	if (!flag[i]) break;
     first_layer = i;
     
-    for(i = first_layer; i < last_layer; ++i){    		
+    for(i = first_layer + 1; i <= last_layer; ++i){    		
         layer l = net.layers[i];
         l.t = get_current_batch(net);
         if(l.update_gpu){

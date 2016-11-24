@@ -122,7 +122,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 					upper = (net.upperbound - prob_rand) * percentage + prob_rand;
 //					upper = upper > net.upperbound ? net.upperbound : upper;
 					upper = upper > 1.0 ? 1.0 : upper;
-					if (percentage > 1.0 && percentage < 2.0)
+					if (int(percentage) / 2 == 1)
 						upper = 1;
 				}
 				//if train use voting to deciside whether to stop

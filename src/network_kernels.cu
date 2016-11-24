@@ -123,6 +123,8 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				lower = 0.5 - (0.5 - net.lowerbound) * precentage;
 				upper = upper > net.upperbound ? net.upperbound : upper;
 				lower = lower < net.lowerbound ? net.lowerbound : lower;
+				upper = 1;
+				lower = 0;
         	}
 //        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, upper, lower);
         	if(out[indexes] >= upper || out[indexes] <= lower)

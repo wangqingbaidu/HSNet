@@ -91,7 +91,6 @@ void update_network_gpu(network net)
     }
 }
 
-
 void forward_network_gpu_use_flag(network net, network_state state, int* flag, int isTrain)
 {
     state.workspace = net.workspace;
@@ -110,91 +109,53 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
         {
 //        	float* out = (float*)calloc(net.layers[i - 1].outputs*net.layers[i - 1].batch, sizeof(float));
 //          cuda_copy_array(net.layers[i - 1].output_gpu, out, net.layers[i - 1].outputs*net.layers[i - 1].batch);
-        	if (net.early_stop)
+        	float* out = get_network_output_layer_gpu(net, i - 1);
+        	int size = net.layers[i - 1].outputs;
+        	int indexes;
+        	float upper = net.upperbound;
+        	float lower = net.lowerbound;
+        	top_k(out, size, 1, &indexes);
+        	if(isTrain)
         	{
-        		//get upper threashold
-				float upper = net.upperbound;
-				if(isTrain)
-				{
-					float percentage = (float)(*net.seen) / net.N / 1;
-					float prob_rand = 1.0 / net.nclasses;
-		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
-					upper = (net.upperbound - prob_rand) * percentage + prob_rand;
-//					upper = upper > net.upperbound ? net.upperbound : upper;
-					upper = upper > 1.0 ? 1.0 : upper;
-					if (int(percentage) / 2 == 1)
-						upper = 1;
-				}
-				//if train use voting to deciside whether to stop
-				//else use one sample.
-				float* out = get_network_output_layer_gpu(net, i - 1);
-				int outputs = net.layers[i - 1].outputs;
-				int batch_size = net.batch;
-				int indexes;
-				
-				int b;
-				int early_stop_number = 0;
-				float mean_prob = 0;
-				for (b = 0; b < batch_size; b++)
-				{
-					top_k(out + outputs * b, outputs, 1, &indexes);
-					if(out[indexes + outputs * b] >= upper)
-					{
-						early_stop_number++;
-						mean_prob += out[indexes + outputs * b];
-					}
-				}
-				
-				if (net.print2console)
-					if (batch_size == 1)
-						printf("Cost layer AT %d with probability %.6f of type %d and threshold: %.6f", i, out[indexes], indexes, upper);
-					else
-						printf("Cost layer AT %d higher than threshold: %.6f with mean probability %.6f of %d samples", 
-								i, upper, mean_prob /(early_stop_number + 0.000001), early_stop_number);
-						
-				if(early_stop_number > batch_size / 2)
-				{
-					if (net.print2console)
-						printf("----------------------------STOP!\n");
-					break;
-				}
+				float precentage = (float)(*net.seen) / net.N / 50;
+	//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
+				upper = (net.upperbound - 0.5) * precentage + 0.5;
+				lower = 0.5 - (0.5 - net.lowerbound) * precentage;
+				upper = upper > net.upperbound ? net.upperbound : upper;
+				lower = lower < net.lowerbound ? net.lowerbound : lower;
         	}
-			if (i != net.n - 1)
-			{
-				if (net.early_stop && net.print2console)
-					printf("----------------------------DOESN'T STOP!\n");
-				int i_forward = i;
-				//Cost layer set to be false
-				flag[i_forward--] = 0;
-				while(net.layers[i_forward].type != CONVOLUTIONAL)
+//        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, upper, lower);
+        	if(out[indexes] >= upper || out[indexes] <= lower)
+        	{
+//        		printf("----------------------------STOP!\n");
+        		break;
+        	}
+        	else
+        	{
+        		if (i != net.n - 1)
+				{
+//        			printf("----------------------------DOESN'T STOP!\n");
+        			int i_forward = i;
+					//Cost layer set to be false
 					flag[i_forward--] = 0;
-				//last fully convolutional layer set to be false
-				flag[i_forward--] = 0;
-				state.input = net.layers[i_forward].output_gpu;
-			}
-			else
-			{
-				if (net.early_stop && net.print2console)
-					printf("----------------------------STOP!\n");
-			}
+					while(net.layers[i_forward].type != CONVOLUTIONAL)
+						flag[i_forward--] = 0;
+					//last fully convolutional layer set to be false
+					flag[i_forward--] = 0;
+					state.input = net.layers[i_forward].output_gpu;
+				}
+        		else
+        		{
+//        			printf("----------------------------STOP!\n");
+        		}
+        	}
         }
     }    
-
-	if (net.early_stop && net.print2console)
-	{
-		printf("Layer");
-		int total_ignored = 0;
-		for (i = 0; i < net.n; i++)
-			if (!flag[i])
-			{
-				printf(" %d", i);
-				total_ignored++;
-			}
-		if (total_ignored)
-			printf(" is ignored!\n");
-		else
-			printf("None is ignored!\n");
-	}
+//    printf("layer");
+//    for (i = 0; i < net.n; i++)
+//    	if (!flag[i])
+//    		printf(" %d", i);
+//    printf(" is ignored!\n");
 }
 
 void backward_network_gpu_use_flag(network net, network_state state, int* flag)

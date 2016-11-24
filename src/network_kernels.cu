@@ -150,7 +150,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 						printf("Cost layer AT %d with probability %.6f of type %d and threshold: %.6f", i, out[indexes], indexes, upper);
 					else
 						printf("Cost layer AT %d higher than threshold: %.6f with mean probability %.6f of %d samples", 
-								i, upper, mean_prob / batch_size, early_stop_number);
+								i, upper, mean_prob / early_stop_number, early_stop_number);
 						
 				if(early_stop_number > batch_size / 2)
 				{

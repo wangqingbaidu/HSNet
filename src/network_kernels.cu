@@ -185,14 +185,16 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				float upper = net.upperbound;
 				if(isTrain)
 				{
-					float percentage = (float)(*net.seen) / net.N / 1;
-					float prob_rand = 1.0 / net.nclasses;
-		//        	printf("%d,%d,%f", *net.seen, net.N, precentage);				
+					float epoch = (float)(*net.seen) / net.N;
+					float percentage = epoch / net.nclasses / 100;
+					float prob_rand = 1.0 / net.nclasses;		
 					upper = (net.upperbound - prob_rand) * percentage + prob_rand;
-//					upper = upper > net.upperbound ? net.upperbound : upper;
 					upper = upper > 1.0 ? 1.0 : upper;
-					if (int(percentage) / 2 == 1)
+					if (int(epoch) % (net.nclasses + 1) == 1)
 						upper = 1;
+					
+					if (net.print2console)
+						printf("Epoch: %f\tpercentage: %f\tupper: %f\n",epoch, percentage, upper);
 				}
 				//if train use voting to deciside whether to stop
 				//else use one sample.
@@ -216,10 +218,10 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				
 				if (net.print2console)
 					if (batch_size == 1)
-						printf("Cost layer AT %d with probability %.6f of type %d and threshold: %.6f", i, out[indexes], indexes, upper);
+						printf("Cost layer AT %d with probability %.6f of type %d", i, out[indexes], indexes);
 					else
-						printf("Cost layer AT %d higher than threshold: %.6f with mean probability %.6f of %d samples", 
-								i, upper, mean_prob /(early_stop_number + 0.000001), early_stop_number);
+						printf("Cost layer AT %d with mean probability %.6f of %d samples", 
+								i, mean_prob /(early_stop_number + 0.000001), early_stop_number);
 						
 				if(early_stop_number > batch_size / 2)
 				{

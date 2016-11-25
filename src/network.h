@@ -26,7 +26,6 @@ typedef struct network{
     float *output;
     learning_rate_policy policy;
 
-    int nclasses;
     float learning_rate;
     float gamma;
     float scale;
@@ -66,6 +65,9 @@ typedef struct network{
 
     //print to console
     int print2console;
+
+    //number of target classes
+    int nclasses;
 
     #ifdef GPU
     float **input_gpu;

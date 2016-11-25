@@ -107,8 +107,8 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 		upper = upper > 1.0 ? 1.0 : upper;
 		if (int(epoch) % (net.nclasses + 1) == 1)
 		{
-			printf("upper force to be %f", upper);
 			upper = 1;
+			printf("upper force to be %f", upper);
 		}
 		else
 		{

@@ -287,9 +287,9 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
         float loss = train_network(net, train);
 
 #ifdef GPU
-        printf("GPU time cost per image: %lf seconds\n", sec(clock()-time) / net.batch);
+        printf("GPU time cost per image: %lf ms\n", sec(clock()-time) / net.batch * 1000);
 #else
-        printf("CPU time cost per image: %lf seconds\n", sec(clock()-time) / net.batch);
+        printf("CPU time cost per image: %lf ms\n", sec(clock()-time) / net.batch * 1000);
 #endif
 
 

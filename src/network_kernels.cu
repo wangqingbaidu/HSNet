@@ -106,10 +106,17 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 		upper = (net.upperbound - prob_rand) * percentage + prob_rand;
 		upper = upper > 1.0 ? 1.0 : upper;
 		if (int(epoch) % (net.nclasses + 1) == 1)
+		{
+			printf("upper Force to be %f", upper);
 			upper = 1;
+		}
+		else
+		{
+			printf("upper: %f", upper);
+		}
 		
 		if (net.print2console)
-			printf("Epoch: %f\t\tpercentage: %f\t\tupper: %f\n",epoch, percentage, upper);
+			printf("\t\tEpoch: %f\t\tpercentage: %f\n",epoch, percentage);
 	}
 	
     for(i = 0; i < net.n; ++i){

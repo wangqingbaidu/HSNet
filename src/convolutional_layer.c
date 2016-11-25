@@ -487,6 +487,7 @@ void forward_convolutional_layer(convolutional_layer l, network_state state)
 void backward_convolutional_layer(convolutional_layer l, network_state state)
 {
     int i;
+    //l.n is new kernels' number.
     int m = l.n;
     int n = l.size*l.size*l.c;
     int k = convolutional_out_height(l)*
@@ -496,6 +497,7 @@ void backward_convolutional_layer(convolutional_layer l, network_state state)
     backward_bias(l.bias_updates, l.delta, l.batch, l.n, k);
 
     for(i = 0; i < l.batch; ++i){
+    	//a is gradient from prior layers.
         float *a = l.delta + i*m*k;
         float *b = state.workspace;
         float *c = l.weight_updates;

@@ -266,6 +266,12 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 	}
 }
 
+float *get_previous_layer_index_by_flag(int* flag, int index)
+{
+	while(!flag[--index]);
+	return index;
+}
+
 void backward_network_gpu_use_flag(network net, network_state state, int* flag)
 {
     state.workspace = net.workspace;
@@ -275,11 +281,11 @@ void backward_network_gpu_use_flag(network net, network_state state, int* flag)
     int last_layer, first_layer;
     for (i = net.n - 1; i >= 0; i--)
     	if (flag[i]) break;
-    last_layer = net.n - 1;
+    last_layer = i;
     
     for(i = last_layer; i >= 0; i--)
     	if (!flag[i]) break;
-    first_layer = -1;
+    first_layer = i;
     
     printf("Backward and Update layer:");
     for(i = last_layer; i > first_layer; --i){    
@@ -291,7 +297,7 @@ void backward_network_gpu_use_flag(network net, network_state state, int* flag)
             state.input = original_input;
             state.delta = original_delta;
         }else{
-            layer prev = net.layers[i-1];
+            layer prev = net.layers[get_previous_layer_index_by_flag(flag, i)];
             state.input = prev.output_gpu;
             state.delta = prev.delta_gpu;
         }
@@ -309,11 +315,11 @@ void update_network_gpu_use_flag(network net, int* flag)
     int last_layer, first_layer;
     for (i = net.n - 1; i >= 0; i--)
     	if (flag[i]) break;
-    last_layer = net.n - 1;
+    last_layer = i;
     
     for(i = last_layer; i >= 0; i--)
     	if (!flag[i]) break;
-    first_layer = -1;
+    first_layer = i;
     
     for(i = first_layer + 1; i <= last_layer; ++i){    		
         layer l = net.layers[i];

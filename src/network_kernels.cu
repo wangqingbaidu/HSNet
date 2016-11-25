@@ -297,7 +297,10 @@ void backward_network_gpu_use_flag(network net, network_state state, int* flag)
             state.input = original_input;
             state.delta = original_delta;
         }else{
-            layer prev = net.layers[get_previous_layer_index_by_flag(flag, i)];
+        	prev_index = get_previous_layer_index_by_flag(flag, i);
+        	if (net.print2console)
+        		printf("<-%d", prev_index);
+            layer prev = net.layers[prev_index];
             state.input = prev.output_gpu;
             state.delta = prev.delta_gpu;
         }

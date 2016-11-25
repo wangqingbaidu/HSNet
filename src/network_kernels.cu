@@ -266,7 +266,7 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 	}
 }
 
-float *get_previous_layer_index_by_flag(int* flag, int index)
+int get_previous_layer_index_by_flag(int* flag, int index)
 {
 	while(!flag[--index]);
 	return index;

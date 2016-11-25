@@ -159,15 +159,11 @@ void train_classifier_multi(char *datacfg, char *cfgfile, char *weightfile, int 
 
     int epoch = (*net.seen)/N;
     while(get_current_batch(net) < net.max_batches || net.max_batches == 0){
-        time=clock();
-
         pthread_join(load_thread, 0);
         train = buffer;
         load_thread = load_data(args);
 
-        printf("Loaded: %lf seconds\n", sec(clock()-time));
         time=clock();
-
         float loss = train_networks(nets, ngpus, train, 4);
         if(avg_loss == -1) avg_loss = loss;
         avg_loss = avg_loss*.9 + loss*.1;
@@ -271,13 +267,10 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
 
     int epoch = (*net.seen)/N;
     while(get_current_batch(net) < net.max_batches || net.max_batches == 0){
-        time=clock();
-
         pthread_join(load_thread, 0);
         train = buffer;
         load_thread = load_data(args);
 
-        printf("Loaded: %lf seconds\n", sec(clock()-time));
         time=clock();
 
 #ifdef OPENCV
@@ -292,6 +285,15 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
 #endif
 
         float loss = train_network(net, train);
+
+#ifdef GPU
+        printf("GPU time cost per image: %lf seconds\n", sec(clock()-time) / net.batch);
+#else
+        printf("CPU time cost per image: %lf seconds\n", sec(clock()-time) / net.batch);
+#endif
+
+
+
         free_data(train);
 
         if(avg_loss == -1) avg_loss = loss;

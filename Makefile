@@ -3,7 +3,7 @@ CUDNN=0
 OPENCV=0
 DEBUG=0
 
-#ARCH= --gpu-architecture=compute_52 --gpu-code=compute_52
+ARCH= -gencode arch=compute_20,code=sm_21 -gencode arch=compute_37,code=sm_37
 
 VPATH=./src/
 EXEC=../train_data/darknet

@@ -156,12 +156,13 @@ void forward_network_gpu_use_flag(network net, network_state state, int* flag, i
 				}
 				
 				if (net.print2console)
+				{
 					if (batch_size == 1)
 						printf("Cost layer AT %d with probability %.6f of type %d", i, out[indexes], indexes);
 					else
 						printf("Cost layer AT %d, mean probability %.6f of %d samples", 
 								i, mean_prob /(early_stop_number + 0.000001), early_stop_number);
-						
+				}
 				if(early_stop_number > batch_size / 2)
 				{
 					if (net.print2console)

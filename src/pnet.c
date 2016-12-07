@@ -1046,7 +1046,7 @@ int init_net(const char* cfg)
 {
 	char cfgfile[100] = "darknet.cfg";
 	char weightfile[100] = "darknet.weights";
-	float upper = 0.9, lower = 0.1;
+	float upper = 0.9;
 	FILE* f = NULL;
 	if (f)
 	{

@@ -282,7 +282,7 @@ void forward_network_use_flag(network net, network_state state, int* flag, int i
 		if(l.delta){
 			scal_cpu(l.outputs * l.batch, 0, l.delta, 1);
 		}
-		l.forward_gpu(l, state);
+		l.forward(l, state);
 		state.input = l.output;
 
 		flag[i] = 1;

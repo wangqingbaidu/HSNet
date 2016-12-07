@@ -1047,6 +1047,7 @@ int init_net(const char* cfg)
 	char cfgfile[100] = "darknet.cfg";
 	char weightfile[100] = "darknet.weights";
 	float upper = 0.9;
+	int early_stop = 1, print2console = 0;
 	FILE* f = NULL;
 	if (f)
 	{
@@ -1054,6 +1055,8 @@ int init_net(const char* cfg)
 		fscanf(f, "%s", cfgfile);
 		fscanf(f, "%s", weightfile);
 		fscanf(f, "%f", &upper);
+		fscanf(f, "%d", &early_stop);
+		fscanf(f, "%d", &print2console);
 		fclose(f);
 	}
 
@@ -1061,8 +1064,8 @@ int init_net(const char* cfg)
 	puts(weightfile);
 	net = parse_network_cfg2pointer(cfgfile);
 	net->upperbound = upper;
-	net->early_stop =  1;
-	net->print2console = 1;
+	net->early_stop =  early_stop;
+	net->print2console = print2console;
     printf("threshold of network is upper %.4f\n", net->upperbound);
 
 	load_weights(net, weightfile);

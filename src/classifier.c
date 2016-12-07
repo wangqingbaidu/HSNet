@@ -840,6 +840,8 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
     //Use early stop or not
     net.early_stop = option_find_int(options, "early_stop", 1);
 
+    //Whether print info to console
+    net.print2console = option_find_int(options, "console", 0);
 
     int i = 0;
     char **names = get_labels(name_list);

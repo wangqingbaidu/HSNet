@@ -397,7 +397,6 @@ void backward_network_use_flag(network net, network_state state, int* flag)
             state.input = prev.output;
             state.delta = prev.delta;
         }
-        layer l = net.layers[i];
         l.backward(l, state);
     }
 }

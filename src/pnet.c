@@ -1054,7 +1054,6 @@ int init_net(const char* cfg)
 		fscanf(f, "%s", cfgfile);
 		fscanf(f, "%s", weightfile);
 		fscanf(f, "%f", &upper);
-		fscanf(f, "%f", &lower);
 		fclose(f);
 	}
 
@@ -1062,7 +1061,9 @@ int init_net(const char* cfg)
 	puts(weightfile);
 	net = parse_network_cfg2pointer(cfgfile);
 	net->upperbound = upper;
-    printf("threshold of network is upper %.4f", net->upperbound);
+	net->early_stop =  1;
+	net->print2console = 1;
+    printf("threshold of network is upper %.4f\n", net->upperbound);
 
 	load_weights(net, weightfile);
 	set_batch_network(net, 1);

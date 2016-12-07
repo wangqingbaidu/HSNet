@@ -262,7 +262,7 @@ void forward_network_use_flag(network net, network_state state, int* flag, int i
 		float prob_rand = 1.0 / net.nclasses;
 		upper = (net.upperbound - prob_rand) * percentage + prob_rand;
 		upper = upper > 1.0 ? 1.0 : upper;
-		if (int(epoch) % (net.nclasses + 1) == 1)
+		if ((int)epoch % (net.nclasses + 1) == 1)
 		{
 			upper = 1;
 			printf("upper force to be %f", upper);

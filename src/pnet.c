@@ -1062,8 +1062,7 @@ int init_net(const char* cfg)
 	puts(weightfile);
 	net = parse_network_cfg2pointer(cfgfile);
 	net->upperbound = upper;
-	net->lowerbound = lower;
-    printf("threshold of network is upper %.4f lower %.4f\n", net->upperbound, net->lowerbound);
+    printf("threshold of network is upper %.4f", net->upperbound);
 
 	load_weights(net, weightfile);
 	set_batch_network(net, 1);

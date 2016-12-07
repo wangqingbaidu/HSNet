@@ -136,7 +136,6 @@ network make_network(int n)
     net.layers = calloc(net.n, sizeof(layer));
     net.seen = calloc(1, sizeof(int));
     net.upperbound = 0.9;
-    net.lowerbound = 0.1;
     #ifdef GPU
     net.input_gpu = calloc(1, sizeof(float *));
     net.truth_gpu = calloc(1, sizeof(float *));
@@ -152,7 +151,6 @@ network* make_network2pointer(int n)
     net->layers = calloc(net->n, sizeof(layer));
     net->seen = calloc(1, sizeof(int));
     net->upperbound = 0.9;
-    net->lowerbound = 0.1;
     #ifdef GPU
     net->input_gpu = calloc(1, sizeof(float *));
     net->truth_gpu = calloc(1, sizeof(float *));

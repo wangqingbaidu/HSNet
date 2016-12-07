@@ -58,7 +58,6 @@ typedef struct network{
 
     //Threshold of early stop
     float upperbound;
-    float lowerbound;
 
     //Use early stop or not
     int early_stop;

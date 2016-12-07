@@ -252,62 +252,118 @@ void backward_network(network net, network_state state)
 
 void forward_network_use_flag(network net, network_state state, int* flag, int isTrain)
 {
-    state.workspace = net.workspace;
-    int i;
-    for(i = 0; i < net.n; ++i)
-    {
-        state.index = i;
-        layer l = net.layers[i];
-        if(l.delta){
-            scal_cpu(l.outputs * l.batch, 0, l.delta, 1);
-        }
-        l.forward(l, state);
-        state.input = l.output;
+	state.workspace = net.workspace;
+	int i;
 
-        flag[i] = 1;
-        if (l.type == COST)
-        {
-        	float* out = net.layers[i - 1].output;
-        	int size = net.layers[i - 1].outputs;
-        	int indexes;
-        	float upper = net.upperbound;
-        	float lower = net.lowerbound;
-			top_k(out, size, 1, &indexes);
-        	if(isTrain)
-        	{
-				float precentage = (float)(*net.seen)/net.N / 50;
-				float prob_rand = 1 / net.nclasses;
-	//        	printf("%d,%d,%f", *net.seen, net.N, precentage);
-				upper = (net.upperbound - prob_rand) * precentage + prob_rand;
-				lower = prob_rand - (prob_rand - net.lowerbound) * precentage;
-        	}
-        	printf("Cost layer AT %d with precision %.6f of type %d and section:[%.6f, %.6f]", i, out[indexes], indexes, upper, lower);
-        	if(out[indexes] >= upper || out[indexes] <= lower)
-        	{
-        		printf("----------------------------STOP!\n");
-        		break;
-        	}
-        	else
-        	{
-        		if (i != net.n - 1)
+	//get upper threashold
+	float upper = net.upperbound;
+	if(isTrain)
+	{
+		float epoch = (float)(*net.seen) / net.N;
+		float percentage = epoch / net.nclasses / 100;
+		float prob_rand = 1.0 / net.nclasses;
+		upper = (net.upperbound - prob_rand) * percentage + prob_rand;
+		upper = upper > 1.0 ? 1.0 : upper;
+		if (int(epoch) % (net.nclasses + 1) == 1)
+		{
+			upper = 1;
+			printf("upper force to be %f", upper);
+		}
+		else
+		{
+			printf("upper change to be %f", upper);
+		}
+
+		if (net.print2console)
+			printf("\t\tEpoch: %f\t\tpercentage: %f\n",epoch, percentage);
+	}
+
+	for(i = 0; i < net.n; ++i){
+		state.index = i;
+		layer l = net.layers[i];
+		if(l.delta){
+			scal_cpu(l.outputs * l.batch, 0, l.delta, 1);
+		}
+		l.forward_gpu(l, state);
+		state.input = l.output;
+
+		flag[i] = 1;
+		if (l.type == COST)
+		{
+//        	float* out = (float*)calloc(net.layers[i - 1].outputs*net.layers[i - 1].batch, sizeof(float));
+//          cuda_copy_array(net.layers[i - 1].output_gpu, out, net.layers[i - 1].outputs*net.layers[i - 1].batch);
+			if (net.early_stop)
+			{
+				//if train use voting to deciside whether to stop
+				//else use one sample.
+				float* out = net.layers[i - 1].output;
+				int outputs = net.layers[i - 1].outputs;
+				int batch_size = net.batch;
+				int indexes;
+
+				int b;
+				int early_stop_number = 0;
+				float mean_prob = 0;
+				for (b = 0; b < batch_size; b++)
 				{
-        			printf("----------------------------DOESN'T STOP!\n");int i_forward = i;
-					//Cost layer set to be false
-					flag[i_forward--] = 0;
-					while(net.layers[i_forward].type != CONVOLUTIONAL)
-						flag[i_forward--] = 0;
-					//last fully convolutional layer set to be false
-					flag[i_forward--] = 0;
-					state.input = net.layers[i_forward].output;
+					top_k(out, outputs, 1, &indexes);
+					if(out[indexes + outputs * b] >= upper)
+					{
+						early_stop_number++;
+						mean_prob += out[indexes + outputs * b];
+					}
 				}
-        	}
-        }
-    }
-    printf("layer");
-    for (i = 0; i < net.n; i++)
-    	if (!flag[i])
-    		printf(" %d", i);
-    printf(" is ignored!\n");
+
+				if (net.print2console)
+					if (batch_size == 1)
+						printf("Cost layer AT %d with probability %.6f of type %d", i, out[indexes], indexes);
+					else
+						printf("Cost layer AT %d, mean probability %.6f of %d samples",
+								i, mean_prob /(early_stop_number + 0.000001), early_stop_number);
+
+				if(early_stop_number > batch_size / 2)
+				{
+					if (net.print2console)
+						printf("----------------------------STOP!\n");
+					break;
+				}
+			}
+			if (i != net.n - 1)
+			{
+				if (net.early_stop && net.print2console)
+					printf("----------------------------DOESN'T STOP!\n");
+				int i_forward = i;
+				//Cost layer set to be false
+				flag[i_forward--] = 0;
+				while(net.layers[i_forward].type != CONVOLUTIONAL)
+					flag[i_forward--] = 0;
+				//last fully convolutional layer set to be false
+				flag[i_forward--] = 0;
+				state.input = net.layers[i_forward].output;
+			}
+			else
+			{
+				if (net.early_stop && net.print2console)
+					printf("----------------------------STOP!\n");
+			}
+		}
+	}
+
+	if (net.early_stop && net.print2console)
+	{
+		printf("Layer");
+		int total_ignored = 0;
+		for (i = 0; i < net.n; i++)
+			if (!flag[i])
+			{
+				printf(" %d", i);
+				total_ignored++;
+			}
+		if (total_ignored)
+			printf(" is ignored!\n");
+		else
+			printf("None is ignored!\n");
+	}
 }
 
 void backward_network_use_flag(network net, network_state state, int* flag)
@@ -319,19 +375,23 @@ void backward_network_use_flag(network net, network_state state, int* flag)
 
     int last_layer, first_layer;
     for (i = net.n - 1; i >= 0; i--)
-    	if (flag[i]) break;
-    last_layer = i;
+        	if (flag[i]) break;
+	last_layer = i;
 
-    for(i = last_layer; i > 0; i--)
-    	if (!flag[i - 1]) break;
-    first_layer = i;
+	for(i = last_layer; i >= 0; i--)
+		if (!flag[i]) break;
+	first_layer = i;
 
-    for(i = last_layer; i >= first_layer; --i){
-        state.index = i;
-        if(i == 0){
-            state.input = original_input;
-            state.delta = original_delta;
-        }else{
+	printf("Backward and Update layer:");
+	for(i = last_layer; i > first_layer; --i){
+		printf(" %d", i);
+
+		state.index = i;
+		layer l = net.layers[i];
+		if(i == 0){
+			state.input = original_input;
+			state.delta = original_delta;
+		}else{
         	//find previous layer.
         	int prev_index = i - 1;
         	while(prev_index >= 0 && !flag[prev_index]) prev_index--;
@@ -355,8 +415,8 @@ void update_network_use_flag(network net, int* flag)
     	if (flag[i]) break;
     last_layer = i;
 
-    for(i = last_layer; i > 0; i--)
-    	if (!flag[i - 1]) break;
+    for(i = last_layer; i >= 0; i--)
+    	if (!flag[i]) break;
     first_layer = i;
 
     for(i = first_layer; i < last_layer; ++i){

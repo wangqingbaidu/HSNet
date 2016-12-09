@@ -679,13 +679,11 @@ float *network_predict(network net, float *input)
     state.train = 0;
     state.delta = 0;
     int i, index = 0;
-    int * flag = (int*)calloc(net.n, sizeof(int));
+    int *flag = (int*)calloc(net.n, sizeof(int));
     forward_network_use_flag(net, state, flag, 0);
 
     for (i = 0; i < net.n; i++)
     	if(flag[i]) index = i;
-
-    printf("\n\nindex is %d\n\n", index);
     float *out = get_network_output_from_index(net, index - 1);
     free(flag);
     return out;

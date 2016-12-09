@@ -198,9 +198,6 @@ float *get_network_output(network net)
 
 float *get_network_output_from_index(network net, int index)
 {
-#ifdef GPU
-    if (gpu_index >= 0) return get_network_output_gpu(net);
-#endif
     int i;
     for(i = index; i > 0; --i) if(net.layers[i].type != COST) break;
     return net.layers[i].output;
@@ -681,13 +678,13 @@ float *network_predict(network net, float *input)
     state.truth = 0;
     state.train = 0;
     state.delta = 0;
-    int i;
+    int i, index = 0;
     int * flag = (int*)calloc(net.n, sizeof(int));
     forward_network_use_flag(net, state, flag, 0);
 
     for (i = 0; i < net.n; i++)
-    	if(!flag[i]) break;
-    float *out = get_network_output_from_index(net, i - 1);
+    	if(flag[i]) index = i;
+    float *out = get_network_output_from_index(net, index - 1);
     free(flag);
     return out;
 }

@@ -622,6 +622,8 @@ float *network_predict_gpu(network net, float *input)
     forward_network_gpu_use_flag(net, state, flag, 0);
     for (i = 0; i < net.n; i++)
     	if (flag[i]) lindex = i;
+    
+    printf("\n\nindex is %d\n\n", index);
     float *out = get_network_output_gpu_from_index(net, lindex - 1);
     cuda_free(state.input);
     free(flag);

@@ -684,6 +684,8 @@ float *network_predict(network net, float *input)
 
     for (i = 0; i < net.n; i++)
     	if(flag[i]) index = i;
+
+    printf("\n\nindex is %d\n\n", index);
     float *out = get_network_output_from_index(net, index - 1);
     free(flag);
     return out;

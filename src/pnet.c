@@ -1247,7 +1247,7 @@ extern int close()
     return 1;
 }
 
-extern long long detect(unsigned char* pdata,int width,int height)
+extern long long detect(unsigned long long pid, unsigned char* pdata,int width,int height)
 {
 
     int indexes[1];
@@ -1276,7 +1276,7 @@ extern long long detect(unsigned char* pdata,int width,int height)
     free(X);
     free(im_data);
     if (indexes[0] == 0)
-      return (1 << 8) | 37;
+      return (1 << 9) | (37 <<1) | 1;
     else
       return 0;
 //    return indexes[0];

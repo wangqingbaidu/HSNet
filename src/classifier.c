@@ -13,6 +13,8 @@
 image get_image_from_stream(CvCapture *cap);
 #endif
 
+float validate_while_training(char *datacfg, char *filename, char *weightfile);
+
 list *read_data_cfg(char *filename)
 {
     FILE *file = fopen(filename, "r");
@@ -229,6 +231,12 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
     //Whether print info to console
     net.print2console = option_find_int(options, "console", 0);
 
+    //Whether validate model while training
+    int train_validate = option_find_int(options, "validate_model", 0);
+
+    //best model
+    float top1_best = 0;
+
     char **labels = get_labels(label_list);
     list *plist = get_paths(train_list);
     char **paths = (char **)list_to_array(plist);
@@ -299,16 +307,29 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
         if(avg_loss == -1) avg_loss = loss;
         avg_loss = avg_loss*.9 + loss*.1;
         printf("%d, %.3f: %f, %f avg, %f rate, %lf seconds, %d images\n\n", get_current_batch(net), (float)(*net.seen)/N, loss, avg_loss, get_current_rate(net), sec(clock()-time), *net.seen);
-        if(*net.seen/N > epoch){
-            epoch = *net.seen/N;
-            char buff[256];
-            sprintf(buff, "%s/%s_%d.weights",backup_directory,base, epoch);
-            save_weights(net, buff);
-        }
+
+//        if(*net.seen/N > epoch){
+//            epoch = *net.seen/N;
+//            char buff[256];
+//            sprintf(buff, "%s/%s_%d.weights",backup_directory,base, epoch);
+//            save_weights(net, buff);
+//        }
+
         if(get_current_batch(net)%100 == 0){
             char buff[256];
             sprintf(buff, "%s/%s.backup",backup_directory,base);
             save_weights(net, buff);
+
+            if (train_validate)
+            {
+                float top1 = validate_while_training(datacfg, cfgfile, buff);
+                if (top1 > top1_best)
+                {
+                	top1_best = top1;
+                    sprintf(buff, "%s/best_model.backup",backup_directory);
+                    save_weights(net, buff);
+                }
+            }
         }
     }
     char buff[256];
@@ -656,6 +677,76 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
 
     fprintf(logfile, "Predicted in %f seconds.\n", sec(clock()-time));
     fclose(logfile);
+}
+
+float validate_while_training(char *datacfg, char *filename, char *weightfile)
+{
+    int i, j;
+    network net = parse_network_cfg(filename);
+    if(weightfile){
+        load_weights(&net, weightfile);
+    }
+    set_batch_network(&net, 1);
+    srand(time(0));
+
+    list *options = read_data_cfg(datacfg);
+
+    char *label_list = option_find_str(options, "labels", "data/labels.list");
+    char *leaf_list = option_find_str(options, "leaves", 0);
+    if(leaf_list) change_leaves(net.hierarchy, leaf_list);
+    char *valid_list = option_find_str(options, "valid", "data/train.list");
+    int classes = option_find_int(options, "classes", 2);
+    net.nclasses = classes;
+    int topk = option_find_int(options, "top", 1);
+
+    //upperbound and lowerbound of threshold
+    float upperbound = option_find_float(options, "upperbound", .9);
+    net.upperbound = upperbound;
+    printf("threshold of network is upper %.4f\n", net.upperbound);
+
+    //Use early stop or not
+    net.early_stop = option_find_int(options, "early_stop", 1);
+
+    //Whether print info to console
+    net.print2console = option_find_int(options, "console", 0);
+
+    char **labels = get_labels(label_list);
+    list *plist = get_paths(valid_list);
+
+    char **paths = (char **)list_to_array(plist);
+    int m = plist->size;
+    free_list(plist);
+
+    float avg_acc = 0;
+    float avg_topk = 0;
+    int *indexes = calloc(topk, sizeof(int));
+    clock_t time = clock();
+    for(i = 0; i < m; ++i){
+        int class = -1;
+        char *path = paths[i];
+        for(j = 0; j < classes; ++j){
+            if(strstr(path, labels[j])){
+                class = j;
+                break;
+            }
+        }
+        image im = load_image_color(paths[i], 0, 0);
+        image resized = resize_min(im, net.w);
+        image crop = crop_image(resized, (resized.w - net.w)/2, (resized.h - net.h)/2, net.w, net.h);
+        //show_image(im, "orig");
+        //show_image(crop, "cropped");
+        //cvWaitKey(0);tai
+        float *pred = network_predict(net, crop.data);
+        if(net.hierarchy) hierarchy_predictions(pred, net.outputs, net.hierarchy, 1);
+
+        if(resized.data != im.data) free_image(resized);
+        free_image(im);
+        free_image(crop);
+        top_k(pred, classes, topk, indexes);
+
+        if(indexes[0] == class) avg_acc += 1;
+    }
+    return avg_acc / m;
 }
 
 void validate_classifier_multi(char *datacfg, char *filename, char *weightfile)

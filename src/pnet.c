@@ -1049,9 +1049,9 @@ int init_net(const char* cfg)
 	float upper = 0.9;
 	int early_stop = 1, print2console = 0;
 	FILE* f = NULL;
+	f = fopen(cfg, "r");
 	if (f)
 	{
-		f = fopen(cfg, "r");
 		fscanf(f, "%s", cfgfile);
 		fscanf(f, "%s", weightfile);
 		fscanf(f, "%f", &upper);
@@ -1137,7 +1137,7 @@ void myResize(uchar* dataDst ,unsigned char *pdata,int width,int height,int new_
 void yuv_resize(unsigned char* pData1, int w1,int h1, unsigned char* pData2, int w2, int h2)
 {
     int x1,y1,x2,y2;
-    float xr,yr; //反向缩放比例
+    float xr,yr; //路麓脧貌脣玫路脜卤脠脌媒
     xr=(float)(w1) / (float)(w2);
     yr=(float)(h1) / (float)(h2);
     for(x2=0;x2<w2;x2++)

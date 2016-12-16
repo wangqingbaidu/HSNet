@@ -908,7 +908,6 @@ void try_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filena
 
 void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filename, int top)
 {
-	int i;
     network net = parse_network_cfg(cfgfile);
     if(weightfile){
         load_weights(&net, weightfile);
@@ -934,7 +933,6 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
     net.print2console = option_find_int(options, "console", 0);
 
     int *indexes = calloc(topk, sizeof(int));
-    clock_t time = clock();
 	image im = load_image_color(filename, 0, 0);
 	image resized = resize_min(im, net.w);
 	image crop = crop_image(resized, (resized.w - net.w)/2, (resized.h - net.h)/2, net.w, net.h);
@@ -948,9 +946,9 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 
 
 	if (net.print2console)
+	{
 		printf("%d\n", indexes[0]);
     }
-    fclose(logfile);
 }
 
 

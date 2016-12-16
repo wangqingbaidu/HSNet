@@ -273,7 +273,7 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
     args.d = &buffer;
     load_thread = load_data(args);
 
-    int epoch = (*net.seen)/N;
+//    int epoch = (*net.seen)/N;
     while(get_current_batch(net) < net.max_batches || net.max_batches == 0){
         pthread_join(load_thread, 0);
         train = buffer;
@@ -609,7 +609,7 @@ void validate_classifier_single(char *datacfg, char *filename, char *weightfile)
     char *label_list = option_find_str(options, "labels", "data/labels.list");
     char *leaf_list = option_find_str(options, "leaves", 0);
     if(leaf_list) change_leaves(net.hierarchy, leaf_list);
-    char *valid_list = option_find_str(options, "valid", "data/train.list");
+    char *valid_list = option_find_str(options, "valid", "data/valid.list");
     int classes = option_find_int(options, "classes", 2);
     net.nclasses = classes;
     int topk = option_find_int(options, "top", 1);
@@ -720,7 +720,6 @@ float validate_while_training(char *datacfg, char *filename, char *weightfile)
     float avg_acc = 0;
     float avg_topk = 0;
     int *indexes = calloc(topk, sizeof(int));
-    clock_t time = clock();
     for(i = 0; i < m; ++i){
         int class = -1;
         char *path = paths[i];
@@ -976,7 +975,7 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 
 void label_classifier(char *datacfg, char *filename, char *weightfile)
 {
-		int i, j;
+		int i;
 	    network net = parse_network_cfg(filename);
 	    if(weightfile){
 	        load_weights(&net, weightfile);
@@ -986,10 +985,7 @@ void label_classifier(char *datacfg, char *filename, char *weightfile)
 
 	    list *options = read_data_cfg(datacfg);
 
-	    char *label_list = option_find_str(options, "labels", "data/labels.list");
-	    char *leaf_list = option_find_str(options, "leaves", 0);
-	    if(leaf_list) change_leaves(net.hierarchy, leaf_list);
-	    char *valid_list = option_find_str(options, "valid", "data/train.list");
+	    char *predict_list = option_find_str(options, "predict", "pnet_predict.list");
 	    int classes = option_find_int(options, "classes", 2);
 	    net.nclasses = classes;
 	    int topk = option_find_int(options, "top", 1);
@@ -1005,15 +1001,12 @@ void label_classifier(char *datacfg, char *filename, char *weightfile)
 	    //Whether print info to console
 	    net.print2console = option_find_int(options, "console", 0);
 
-	    char **labels = get_labels(label_list);
-	    list *plist = get_paths(valid_list);
+	    list *plist = get_paths(predict_list);
 
 	    char **paths = (char **)list_to_array(plist);
 	    int m = plist->size;
 	    free_list(plist);
 
-	    float avg_acc = 0;
-	    float avg_topk = 0;
 	    int *indexes = calloc(topk, sizeof(int));
 	    FILE* logfile = fopen("predictions.log", "w");
 	    clock_t time = clock();
@@ -1034,8 +1027,8 @@ void label_classifier(char *datacfg, char *filename, char *weightfile)
 	        if (net.print2console)
 	        	printf("%d\n", indexes[0]);
 	    }
-
-	    fprintf(logfile, "Predicted in %f seconds.\n", sec(clock()-time));
+	    if (net.print2console)
+	    	printf("Predicted in %f seconds.\n", sec(clock()-time));
 	    fclose(logfile);
 }
 

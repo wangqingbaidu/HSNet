@@ -976,7 +976,7 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 
 void label_classifier(char *datacfg, char *filename, char *weightfile)
 {
-	int i, j;
+		int i, j;
 	    network net = parse_network_cfg(filename);
 	    if(weightfile){
 	        load_weights(&net, weightfile);

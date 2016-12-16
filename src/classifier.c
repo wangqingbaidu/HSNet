@@ -976,49 +976,67 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 
 void label_classifier(char *datacfg, char *filename, char *weightfile)
 {
-    int i;
-    network net = parse_network_cfg(filename);
-    set_batch_network(&net, 1);
-    if(weightfile){
-        load_weights(&net, weightfile);
-    }
-    srand(time(0));
+	int i, j;
+	    network net = parse_network_cfg(filename);
+	    if(weightfile){
+	        load_weights(&net, weightfile);
+	    }
+	    set_batch_network(&net, 1);
+	    srand(time(0));
 
-    list *options = read_data_cfg(datacfg);
+	    list *options = read_data_cfg(datacfg);
 
-    char *label_list = option_find_str(options, "names", "data/labels.list");
-    char *test_list = option_find_str(options, "test", "data/train.list");
+	    char *label_list = option_find_str(options, "labels", "data/labels.list");
+	    char *leaf_list = option_find_str(options, "leaves", 0);
+	    if(leaf_list) change_leaves(net.hierarchy, leaf_list);
+	    char *valid_list = option_find_str(options, "valid", "data/train.list");
+	    int classes = option_find_int(options, "classes", 2);
+	    net.nclasses = classes;
+	    int topk = option_find_int(options, "top", 1);
 
-    //upperbound and lowerbound of threshold
-    float upperbound = option_find_float(options, "upperbound", .9);
-    net.upperbound = upperbound;
-    printf("threshold of network is upper %.4f\n", net.upperbound);
+	    //upperbound and lowerbound of threshold
+	    float upperbound = option_find_float(options, "upperbound", .9);
+	    net.upperbound = upperbound;
+	    printf("threshold of network is upper %.4f\n", net.upperbound);
 
-    //Use early stop or not
-    net.early_stop = option_find_int(options, "early_stop", 1);
+	    //Use early stop or not
+	    net.early_stop = option_find_int(options, "early_stop", 1);
 
-    int classes = option_find_int(options, "classes", 2);
+	    //Whether print info to console
+	    net.print2console = option_find_int(options, "console", 0);
 
-    char **labels = get_labels(label_list);
-    list *plist = get_paths(test_list);
+	    char **labels = get_labels(label_list);
+	    list *plist = get_paths(valid_list);
 
-    char **paths = (char **)list_to_array(plist);
-    int m = plist->size;
-    free_list(plist);
+	    char **paths = (char **)list_to_array(plist);
+	    int m = plist->size;
+	    free_list(plist);
 
-    for(i = 0; i < m; ++i){
-        image im = load_image_color(paths[i], 0, 0);
-        image resized = resize_min(im, net.w);
-        image crop = crop_image(resized, (resized.w - net.w)/2, (resized.h - net.h)/2, net.w, net.h);
-        float *pred = network_predict(net, crop.data);
+	    float avg_acc = 0;
+	    float avg_topk = 0;
+	    int *indexes = calloc(topk, sizeof(int));
+	    FILE* logfile = fopen("predictions.log", "w");
+	    clock_t time = clock();
+	    for(i = 0; i < m; ++i){
+	        image im = load_image_color(paths[i], 0, 0);
+	        image resized = resize_min(im, net.w);
+	        image crop = crop_image(resized, (resized.w - net.w)/2, (resized.h - net.h)/2, net.w, net.h);
+	        float *pred = network_predict(net, crop.data);
+	        if(net.hierarchy) hierarchy_predictions(pred, net.outputs, net.hierarchy, 1);
 
-        if(resized.data != im.data) free_image(resized);
-        free_image(im);
-        free_image(crop);
-        int ind = max_index(pred, classes);
+	        if(resized.data != im.data) free_image(resized);
+	        free_image(im);
+	        free_image(crop);
+	        top_k(pred, classes, topk, indexes);
 
-        printf("%s\n", labels[ind]);
-    }
+	        fprintf(logfile, "%d\n", indexes[0]);
+
+	        if (net.print2console)
+	        	printf("%d\n", indexes[0]);
+	    }
+
+	    fprintf(logfile, "Predicted in %f seconds.\n", sec(clock()-time));
+	    fclose(logfile);
 }
 
 

@@ -718,7 +718,6 @@ float validate_while_training(char *datacfg, char *filename, char *weightfile)
     free_list(plist);
 
     float avg_acc = 0;
-    float avg_topk = 0;
     int *indexes = calloc(topk, sizeof(int));
     for(i = 0; i < m; ++i){
         int class = -1;

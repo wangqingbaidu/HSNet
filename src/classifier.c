@@ -273,7 +273,7 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
     args.d = &buffer;
     load_thread = load_data(args);
 
-//    int epoch = (*net.seen)/N;
+    int epoch = (*net.seen)/N;
     while(get_current_batch(net) < net.max_batches || net.max_batches == 0){
         pthread_join(load_thread, 0);
         train = buffer;
@@ -308,16 +308,10 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
         avg_loss = avg_loss*.9 + loss*.1;
         printf("%d, %.3f: %f, %f avg, %f rate, %lf seconds, %d images\n\n", get_current_batch(net), (float)(*net.seen)/N, loss, avg_loss, get_current_rate(net), sec(clock()-time), *net.seen);
 
-//        if(*net.seen/N > epoch){
-//            epoch = *net.seen/N;
-//            char buff[256];
-//            sprintf(buff, "%s/%s_%d.weights",backup_directory,base, epoch);
-//            save_weights(net, buff);
-//        }
-
-        if(get_current_batch(net)%100 == 0){
+        if(*net.seen/N > epoch){
+            epoch = *net.seen/N;
             char buff[256];
-            sprintf(buff, "%s/%s.backup",backup_directory,base);
+            sprintf(buff, "%s/%s_%d.weights",backup_directory,base, epoch);
             save_weights(net, buff);
 
             if (train_validate)
@@ -331,6 +325,12 @@ void train_classifier(char *datacfg, char *cfgfile, char *weightfile, int clear)
                 }
             }
         }
+
+//        if(get_current_batch(net)%100 == 0){
+//            char buff[256];
+//            sprintf(buff, "%s/%s.backup",backup_directory,base);
+//            save_weights(net, buff);
+//        }
     }
     char buff[256];
     sprintf(buff, "%s/%s.weights", backup_directory, base);
@@ -944,11 +944,7 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 	free_image(crop);
 	top_k(pred, classes, topk, indexes);
 
-
-	if (net.print2console)
-	{
-		printf("%d\n", indexes[0]);
-    }
+	printf("%d\n", indexes[0]);
 }
 
 

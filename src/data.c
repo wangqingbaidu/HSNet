@@ -383,7 +383,7 @@ void fill_truth(char *path, char **labels, int k, float *truth)
         if(strstr(path, labels[i])){
             truth[i] = 1;
             ++count;
-            printf("path is %s\nlabel is %s", path, labels[i]);
+            printf("path is %s\nlabel is %s\n", path, labels[i]);
         }
     }
     if(count != 1) printf("Too many or too few labels: %d, %s\n", count, path);

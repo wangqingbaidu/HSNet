@@ -944,7 +944,7 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 	free_image(crop);
 	top_k(pred, classes, topk, indexes);
 
-	printf("%d\n", indexes[0]);
+	printf("%d\t%f\n", indexes[0], pred[indexes[0]]);
 }
 
 

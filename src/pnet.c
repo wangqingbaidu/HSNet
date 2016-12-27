@@ -1282,3 +1282,37 @@ extern long long detect(unsigned long long pid, unsigned char* pdata,int width,i
 //    return indexes[0];
 }
 
+extern long long detect_old(unsigned char* pdata,int width,int height)
+{
+
+    int indexes[1];
+    indexes[0] = 0;
+    unsigned char* im_data = (unsigned char*)malloc(224 * 224 * 3);
+    float*X  = (float*)calloc(224 * 224 * 3, sizeof(float));
+    clock_t time;
+	time = clock();
+    im_resize(pdata, width, height, im_data, 224, 224);
+    GetMeanFile(im_data, X, 3);
+	printf("Get data in %f seconds.\n",sec(clock()-time));
+/*
+        int size = net->w;
+        image im = load_image_color("00014152.jpg", 0, 0);
+	printf("--------%d------%d\n", im.w,net->batch);
+        image r = resize_min(im, size);
+        //resize_network(net, r.w, r.h);
+	float *X = r.data;
+*/
+    //resize_network(net, 224, 224);
+	time = clock();
+    float *predictions = network_predict(*net, X);
+    top_predictions(*net, 1, indexes);
+	printf("Predicted in %f seconds.\n",sec(clock()-time));
+    printf("%f\n", predictions[indexes[0]]);
+    free(X);
+    free(im_data);
+    if (indexes[0] == 0)
+      return (1 << 9) | (37 <<1) | 1;
+    else
+      return 0;
+//    return indexes[0];
+}

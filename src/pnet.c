@@ -993,6 +993,7 @@ void run_classifier(int argc, char **argv)
 
 //std::vector<mx_float> image_data = std::vector<mx_float>(image_size);
 network* net = 0;  // alias for void *
+int classes = 2;
 //pthread_mutex_t out_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int YUV420_To_BGR24(unsigned char *puc_y, unsigned char *puc_u, unsigned char *puc_v, unsigned char *puc_rgb, int width_y, int height_y)
@@ -1057,6 +1058,7 @@ int init_net(const char* cfg)
 		fscanf(f, "%f", &upper);
 		fscanf(f, "%d", &early_stop);
 		fscanf(f, "%d", &print2console);
+		fscanf(f, "%d", &classes);
 		fclose(f);
 	}
 
@@ -1270,15 +1272,15 @@ extern long long detect(unsigned long long pid, unsigned char* pdata,int width,i
     //resize_network(net, 224, 224);
 	time = clock();
     float *predictions = network_predict(*net, X);
-    top_predictions(*net, 1, indexes);
+    top_k(predictions, 2, 1, indexes);
 	printf("Predicted in %f seconds.\n",sec(clock()-time));
     printf("%f\n", predictions[indexes[0]]);
     free(X);
     free(im_data);
-    if (indexes[0] == 0)
-      return (1 << 9) | (37 <<1) | 1;
+    if (indexes[0] != classes - 1)
+    	return 0;
     else
-      return 0;
+      return (1 << 9) | (37 <<1) | 1;
 //    return indexes[0];
 }
 
@@ -1311,9 +1313,9 @@ extern long long detect_old(unsigned char* pdata,int width,int height)
     printf("%f\n", predictions[indexes[0]]);
     free(X);
     free(im_data);
-    if (indexes[0] == 0)
-      return (1 << 9) | (37 <<1) | 1;
+    if (indexes[0] != classes - 1)
+    	return 0;
     else
-      return 0;
+      return (1 << 9) | (37 <<1) | 1;
 //    return indexes[0];
 }

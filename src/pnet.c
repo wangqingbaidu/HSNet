@@ -1305,7 +1305,8 @@ extern long long detect_old(unsigned char* pdata,int width,int height)
     //resize_network(net, 224, 224);
 	time = clock();
     float *predictions = network_predict(*net, X);
-    top_predictions(*net, 1, indexes);
+//    top_predictions(*net, 1, indexes);
+    top_k(predictions, 2, 1, indexes);
 	printf("Predicted in %f seconds.\n",sec(clock()-time));
     printf("%f\n", predictions[indexes[0]]);
     free(X);

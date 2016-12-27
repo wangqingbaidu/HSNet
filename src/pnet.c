@@ -1277,7 +1277,7 @@ extern long long detect(unsigned long long pid, unsigned char* pdata,int width,i
     printf("%f\n", predictions[indexes[0]]);
     free(X);
     free(im_data);
-    if (indexes[0] != classes - 1)
+    if (indexes[0] == classes - 1)
     	return 0;
     else
       return (1 << 9) | (37 <<1) | 1;
@@ -1313,7 +1313,7 @@ extern long long detect_old(unsigned char* pdata,int width,int height)
     printf("%f\n", predictions[indexes[0]]);
     free(X);
     free(im_data);
-    if (indexes[0] != classes - 1)
+    if (indexes[0] == classes - 1)
     	return 0;
     else
       return (1 << 9) | (37 <<1) | 1;

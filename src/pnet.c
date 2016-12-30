@@ -1146,7 +1146,7 @@ void myResize(uchar* dataDst ,unsigned char *pdata,int width,int height,int new_
 void yuv_resize(unsigned char* pData1, int w1,int h1, unsigned char* pData2, int w2, int h2)
 {
     int x1,y1,x2,y2;
-    float xr,yr; //·´ÏòËõ·Å±ÈÀý
+    float xr,yr;
     xr=(float)(w1) / (float)(w2);
     yr=(float)(h1) / (float)(h2);
     for(x2=0;x2<w2;x2++)

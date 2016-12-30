@@ -7,9 +7,21 @@ From Institute of Computing Technology
 All Rights Reserved.
 '''
 import os, sys
+import argparse 
 
 if __name__ == '__main__':
-    filename = 'valid.log'
+    """
+    This script is used to combine results.
+    Multiple class classifier of porn data is used.
+    """
+    parser = argparse.ArgumentParser(description='Combine results of multiple classifier.')
+    parser.add_argument('-n', default = 5, type=int)
+    parser.add_argument('-f', default = 'valid.log')
+    parser.add_argument('-o', default = 'final_valid.log')
+    parser.add_argument('-vl', default = './cfg/pnet_list/pnet_valid.list')
+    
+    args = parser.parse_args()
+    filename = args.f
     if len(sys.argv) > 1:
         filename = sys.argv[-1]
     
@@ -17,7 +29,7 @@ if __name__ == '__main__':
         print 'file %s not exist!' %filename
         exit()
     
-    final_valid = open('final_valid.log', 'w')
+    final_valid = open(args.f, 'w')
     error_num = 0
     error_num_per_class = {}
     for i in open(filename).readlines():
@@ -38,7 +50,7 @@ if __name__ == '__main__':
             pass
         
     final_valid.close()
-    valid_num = len(open('pnet_valid.list').readlines())
+    valid_num = len(open(args.vl).readlines())
     
     error_num_per_class = sorted(error_num_per_class.iteritems(), key = lambda k:k[1], reverse = True)
     for c, num in error_num_per_class:

@@ -993,8 +993,12 @@ void run_classifier(int argc, char **argv)
 
 //std::vector<mx_float> image_data = std::vector<mx_float>(image_size);
 network* net = 0;  // alias for void *
-int classes = 2;
-//pthread_mutex_t out_mutex = PTHREAD_MUTEX_INITIALIZER;
+int rednet_classes = 2;
+int print2console = 0;
+pthread_mutex_t rednet_out = PTHREAD_MUTEX_INITIALIZER;
+int rednet_use_flag = 0;
+int rednet_type = 0;
+float rednet_threshold = 0.9;
 
 int YUV420_To_BGR24(unsigned char *puc_y, unsigned char *puc_u, unsigned char *puc_v, unsigned char *puc_rgb, int width_y, int height_y)
 {
@@ -1048,7 +1052,8 @@ int init_net(const char* cfg)
 	char cfgfile[100] = "darknet.cfg";
 	char weightfile[100] = "darknet.weights";
 	float upper = 0.9;
-	int early_stop = 1, print2console = 0;
+	int early_stop = 1;
+	print2console = 0;
 	FILE* f = NULL;
 	f = fopen(cfg, "r");
 	if (f)
@@ -1058,7 +1063,9 @@ int init_net(const char* cfg)
 		fscanf(f, "%f", &upper);
 		fscanf(f, "%d", &early_stop);
 		fscanf(f, "%d", &print2console);
-		fscanf(f, "%d", &classes);
+		fscanf(f, "%d", &rednet_classes);
+		fscanf(f, "%d", &rednet_type);
+		fscanf(f, "%f", &rednet_threshold);
 		fclose(f);
 	}
 
@@ -1249,41 +1256,6 @@ extern int close()
     return 1;
 }
 
-extern long long detect(unsigned long long pid, unsigned char* pdata,int width,int height)
-{
-
-    int indexes[1];
-    indexes[0] = 0;
-    unsigned char* im_data = (unsigned char*)malloc(224 * 224 * 3);
-    float*X  = (float*)calloc(224 * 224 * 3, sizeof(float));
-    clock_t time;
-	time = clock();
-    im_resize(pdata, width, height, im_data, 224, 224);
-    GetMeanFile(im_data, X, 3);
-	printf("Get data in %f seconds.\n",sec(clock()-time));
-/*
-        int size = net->w;
-        image im = load_image_color("00014152.jpg", 0, 0);
-	printf("--------%d------%d\n", im.w,net->batch);
-        image r = resize_min(im, size);
-        //resize_network(net, r.w, r.h);
-	float *X = r.data;
-*/
-    //resize_network(net, 224, 224);
-	time = clock();
-    float *predictions = network_predict(*net, X);
-    top_k(predictions, classes, 1, indexes);
-	printf("Predicted in %f seconds.\n",sec(clock()-time));
-    printf("%f\n", predictions[indexes[0]]);
-    free(X);
-    free(im_data);
-    if (indexes[0] == classes - 1)
-    	return 0;
-    else
-      return (1 << 9) | (37 <<1) | 1;
-//    return indexes[0];
-}
-
 extern long long detect_old(unsigned char* pdata,int width,int height)
 {
 
@@ -1307,15 +1279,68 @@ extern long long detect_old(unsigned char* pdata,int width,int height)
     //resize_network(net, 224, 224);
 	time = clock();
     float *predictions = network_predict(*net, X);
-//    top_predictions(*net, 1, indexes);
-    top_k(predictions, classes, 1, indexes);
+    top_k(predictions, rednet_classes, 1, indexes);
 	printf("Predicted in %f seconds.\n",sec(clock()-time));
-    printf("%f\n", predictions[indexes[0]]);
+    //printf("%f\n", predictions[indexes[0]]);
+    printf("%d\t%f\n", indexes[0], predictions[indexes[0]]);
     free(X);
     free(im_data);
-    if (indexes[0] == classes - 1)
+    if (indexes[0] == rednet_classes - 1 || predictions[indexes[0]] < rednet_threshold)
     	return 0;
     else
-      return (1 << 9) | (37 <<1) | 1;
+      return (1 << 9) | (0xa5 <<1) | 1;
 //    return indexes[0];
+}
+
+extern long long detect(unsigned long long pid,unsigned char* pdata,int width,int height)
+{
+		pthread_mutex_lock(&rednet_out);
+		if (rednet_use_flag == 0)
+		{
+			rednet_use_flag = 1;
+			pthread_mutex_unlock(&rednet_out);
+		}
+		else
+		{
+			pthread_mutex_unlock(&rednet_out);
+			return 0;
+		}
+    int indexes[1];
+    indexes[0] = 0;
+    unsigned char* im_data = (unsigned char*)malloc(224 * 224 * 3);
+    float*X  = (float*)calloc(224 * 224 * 3, sizeof(float));
+    clock_t time;
+	time = clock();
+    im_resize(pdata, width, height, im_data, 224, 224);
+    GetMeanFile(im_data, X, 3);
+    if (print2console)
+    	printf("Get data in %f seconds.\n",sec(clock()-time));
+/*
+        int size = net->w;
+        image im = load_image_color("00014152.jpg", 0, 0);
+	printf("--------%d------%d\n", im.w,net->batch);
+        image r = resize_min(im, size);
+        //resize_network(net, r.w, r.h);
+	float *X = r.data;
+*/
+    //resize_network(net, 224, 224);
+	time = clock();
+    float *predictions = network_predict(*net, X);
+    top_k(predictions, rednet_classes, 1, indexes);
+	if (print2console)
+		printf("Predicted in %f seconds.\n",sec(clock()-time));
+	if(print2console)
+		printf("%lld\t%d\t%f\n", pid, indexes[0], predictions[indexes[0]]);
+
+	pthread_mutex_lock(&rednet_out);
+	rednet_use_flag = 0;
+	pthread_mutex_unlock(&rednet_out);
+
+    free(X);
+    free(im_data);
+    if (indexes[0] == rednet_classes - 1 || predictions[indexes[0]] < rednet_threshold )
+    	return 0;
+    else
+      return (1 << 9) | (rednet_type <<1) | 1;
+    	//return 0xa5;
 }

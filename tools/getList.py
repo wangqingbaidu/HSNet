@@ -9,51 +9,43 @@ From Institute of Computing Technology
 '''
 import os, random, sys
 from sys import maxint
+import argparse
+from test.pystone import nargs
+
+
+def color_print(text, color=None):
+    try:
+        from termcolor import cprint
+        cprint(text, color=color)
+    except:
+        print text
+        
 class PrepareData:
     def __init__(self,
-                 data = None,
-                 unique_data = set(),
-                 negative_label = 'nfuck',
+                 args = None,
                  train_list_save_name = 'pnet_train.list',
                  valid_list_save_name = 'pnet_valid.list',
                  lables_list_save_name = 'pnet_labels.list',
-                 valid_ratio = .1,
-                 rename = False,
-                 load_balance = False,
-                 debug = False,
                  pic_format = ['bmp', 'jpg', 'jpeg', 'png']):
         
-        if not data:
-            print 'Train data can not be empty!'
-            assert data
-        elif type(data) != dict:            
-            print 'Data input must be label-directory pair in type of dict!'
-            assert type(data) == dict
-            
-        self.load_balance = load_balance
-        self.debug = debug
-        self.rename = rename
-        self.data = data
-        self.unique_data = unique_data
-        self.negative_label = negative_label
+        
+        self.args = args
+        self.load_balance = args.b
+        self.debug = args.debug
+        self.unique_data = set(args.ulabel)
+        self.valid_ratio = args.ratio
+        
         self.pic_format = pic_format
         self.train_list_save_name = train_list_save_name
         self.valid_list_save_name = valid_list_save_name
         self.lables_list_save_name = lables_list_save_name
-        self.valid_ratio = valid_ratio
         
         self.train_list = {}
         self.label_prog = {}
-        self.train_labels = set()
         self.dir2expand = []
         
-        for k in data:
-            self.dir2expand.append((data[k], k))
-            if self.rename:
-                self.train_labels.add('/' + k + '_')
-            else:
-                self.train_labels.add(k)
-                
+        for k in self.data:
+            self.dir2expand += self.data[k]
             self.train_list[k] = []
             self.label_prog[k] = set()
             
@@ -81,15 +73,17 @@ class PrepareData:
         assert label in self.train_labels
         self.train_list[label] = self.train_list[label][:min_samples]
         
-    def genList(self):
+    def find_file(self):
+        cwd = os.getcwd()
         while len(self.dir2expand):
-            td_dir, label = self.dir2expand.pop(0)
+            td_dir = self.dir2expand.pop(0)
             files = os.listdir(td_dir)
             for f in files:
-                original_file_name = td_dir + '/' + f
-                if os.path.isfile(original_file_name):
+                fname = os.path.join(td_dir, f)
+                if os.path.isfile(fname):
                     sufix = os.path.splitext(f)[1][1:]
                     if sufix in self.pic_format:
+                        self.
                         new_file_name = original_file_name
                         if not f.startswith(label + '_'):
                             new_file_name = td_dir + '/' + label + '_' + f
@@ -164,20 +158,49 @@ class PrepareData:
         self.genList()
         self.saveList()
 
-if __name__ == '__main__':
-#     data = {'fuck': './pimg', 'nfuck': './npimg'}
-    
-#     data = {'koujiao': './new_porn/koujiao', 'xingjiao': './new_porn/xingjiao',
-#             'jj': './new_porn/jj', 'yd': './new_porn/yd',
-#             'qunp': './new_porn/qunp', 'nfuck': './npimg'}
-#     unique_data = set({'xingjiao', 'koujiao', 'yd'})
-#     data = {'fuck': './pimg'}
-#     data = {'fuck': './porn_train', 'nfuck': './npimg'}
-    debug = False    
-    if '-d' in sys.argv:
-        debug = True
-        sys.argv.remove('-d')
+    def valid_settings(self):
+        if not os.path.exists(self.args.dir):
+            color_print("Path %s not exists!" %self.args.dir, 'red')
+            exit(0)
+                    
+        self.data = {}
+        self.dir_map_label = {}
+        for l in self.args.label:
+            self.data[l] = []
         
+#         find dir label
+        for d in os.listdir(self.args.dir):
+            if os.path.isdir(d):
+                count = 0
+                for l in self.args.label:
+                    if l in d:
+                        self.data[l].append(d)
+                        self.dir_map_label[d] = l
+                        count += 1
+                if count > 1:
+                    color_print("Dir %s can't contains more than one label." %d, self.args.label, 'red')
+                    exit(0)
+                else:
+                    color_print("Warning: % in % contains no label" %(d, self,args.dir), 'yellow')
+        
+        if not self.data:
+            color_print("No data in %s on given labels %s." %(self.args.dir, ' '.join(self.args.label)), 'red')
+            
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Generate training list.')
+    parser.add_argument("dir", default=None)
+    parser.add_argument("-label", nargs='*')
+    parser.add_argument("-ulabel", nargs='*')
+    parser.add_argument('-debug', action = 'store_true')
+    parser.add_argument("-b", "-balance", action = 'store_true')
+    parser.add_argument('-r', '--ratio', default = 0.1, type=float)
+    args = parser.parse_args()
+
+    data = {}
+    for l in args.label:
+        data[l] = []
+    
     if len(sys.argv) > 1:
         if (len(sys.argv) / 2 == 0):
             print 'Input parameters must be label path pair!'
@@ -195,6 +218,6 @@ if __name__ == '__main__':
                     exit()
 
     print data
-    p = PrepareData(data, unique_data= unique_data, debug=debug, valid_ratio = 0.1)
+    p = PrepareData(data, unique_data= unique_data, debug=args.debug, valid_ratio = 0.1)
     p.go()
         

@@ -72,7 +72,22 @@ class PrepareData:
         
         assert label in self.train_labels
         self.train_list[label] = self.train_list[label][:min_samples]
+    
+    def __get_file_label(self, fname = None):
+        rct = None
+        for l in self.args.label:
+            if l in fname:
+                if tct == None:
+                    rct = l
+                else:
+                    color_print("Warning: %s ignored. Contains more than one label." %fname, 'yellow')
+                    return None
+        if rct == None:
+            color_print("Warning: %s ignored. Does't contain any label." %fname, 'yellow')
         
+        return rct
+        
+    
     def find_file(self):
         cwd = os.getcwd()
         while len(self.dir2expand):
@@ -83,15 +98,9 @@ class PrepareData:
                 if os.path.isfile(fname):
                     sufix = os.path.splitext(f)[1][1:]
                     if sufix in self.pic_format:
-                        self.
-                        new_file_name = original_file_name
-                        if not f.startswith(label + '_'):
-                            new_file_name = td_dir + '/' + label + '_' + f
-                            
-                        if self.rename:
-                            os.rename(original_file_name, new_file_name)
-                        else:
-                            new_file_name = original_file_name
+                        label = self.__get_file_label(fname)
+                        if label == None:
+                            continue
                         
                         if label in self.unique_data: 
                             progID = new_file_name.split('-')[-3]
@@ -101,15 +110,15 @@ class PrepareData:
                             else:
                                 continue
                         else:
-                            self.train_list[label].append(new_file_name)
+                            self.train_list[label].append(os.path.join(cwd, fname))
                             
                         if self.debug:
-                            print 'file:', new_file_name, 'label:', label
+                            print 'file:', fname, 'label:', label
                             
-                elif os.path.isdir(original_file_name):
-                    self.dir2expand.append((original_file_name, label))
+                elif os.path.isdir(fname):
+                    self.dir2expand.append(fname)
                     if self.debug:
-                        print 'dir:', original_file_name, 'label', label
+                        print 'dir:', fanme
     
     def saveList(self):
         if len(self.train_labels) != len(self.train_labels):
@@ -181,7 +190,7 @@ class PrepareData:
                     color_print("Dir %s can't contains more than one label." %d, self.args.label, 'red')
                     exit(0)
                 else:
-                    color_print("Warning: % in % contains no label" %(d, self,args.dir), 'yellow')
+                    color_print("Warning: %s in %s contains no label" %(d, self,args.dir), 'yellow')
         
         if not self.data:
             color_print("No data in %s on given labels %s." %(self.args.dir, ' '.join(self.args.label)), 'red')

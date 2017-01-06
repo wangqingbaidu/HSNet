@@ -1294,17 +1294,17 @@ extern long long detect_old(unsigned char* pdata,int width,int height)
 
 extern long long detect(unsigned long long pid,unsigned char* pdata,int width,int height)
 {
-		pthread_mutex_lock(&rednet_out);
-		if (rednet_use_flag == 0)
-		{
-			rednet_use_flag = 1;
-			pthread_mutex_unlock(&rednet_out);
-		}
-		else
-		{
-			pthread_mutex_unlock(&rednet_out);
-			return 0;
-		}
+	pthread_mutex_lock(&rednet_out);
+	if (rednet_use_flag == 0)
+	{
+		rednet_use_flag = 1;
+		pthread_mutex_unlock(&rednet_out);
+	}
+	else
+	{
+		pthread_mutex_unlock(&rednet_out);
+		return 0;
+	}
     int indexes[1];
     indexes[0] = 0;
     unsigned char* im_data = (unsigned char*)malloc(224 * 224 * 3);

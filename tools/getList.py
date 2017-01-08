@@ -23,7 +23,8 @@ class PrepareData:
                  args = None,
                  train_list_save_name = 'pnet_train.list',
                  valid_list_save_name = 'pnet_valid.list',
-                 lables_list_save_name = 'pnet_labels.list',
+                 labels_list_save_name = 'pnet_labels.list',
+                 dataset_name = 'pnet.dataset',
                  pic_format = ['bmp', 'jpg', 'jpeg', 'png']):
         
         
@@ -36,7 +37,9 @@ class PrepareData:
         self.pic_format = pic_format
         self.train_list_save_name = train_list_save_name
         self.valid_list_save_name = valid_list_save_name
-        self.lables_list_save_name = lables_list_save_name
+        self.labels_list_save_name = labels_list_save_name
+        self.dataset_name = dataset_name
+        
         self.__valid_settings()
         
         self.train_list = {}
@@ -140,7 +143,8 @@ class PrepareData:
               
         train_list_file = open(self.train_list_save_name, 'w')
         valid_list_file = open(self.valid_list_save_name, 'w')
-        labels_list_file = open(self.lables_list_save_name, 'w')
+        labels_list_file = open(self.labels_list_save_name, 'w')
+        dataset_file = open(self.dataset_name, 'w')
         
         for i in train_list_combine[:train_index]:
             train_list_file.write(i + '\n')
@@ -151,10 +155,24 @@ class PrepareData:
         for l in self.label:
             labels_list_file.write(l + '\n')
         
+        dataset = "labels=%s\n\
+            train=%s\n\
+            valid=%s\n\
+            backup=/home/mcg/darknet/train_data/backup_%s\n\
+            classes=2\n\
+            upperbound=0.9\n\
+            early_stop=0\n\
+            console=1\n" \
+            %(self.labels_list_save_name, 
+              self.train_list_save_name, 
+              self.valid_list_save_name, 
+              self.dataset_name)
+        dataset_file.write(dataset)
+        
         train_list_file.close()
         valid_list_file.close()
         labels_list_file.close()
-        
+        dataset_file.close()        
         
         if self.valid_ratio == 1:
             os.remove(self.train_list_save_name)
@@ -194,6 +212,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate training list.')
     parser.add_argument("dir", default=None, 
                         help = "Directory of all training data.")
+    parser.add_argument("-n", "--name", default='pnet', 
+                        help = "Name of this training data.")
     parser.add_argument("-label", nargs='*', default = [], 
                         help = "Labels of training data, if None, use all sub-directories as labels.")
     parser.add_argument("-ulabel", nargs='*', default = [],

@@ -147,14 +147,14 @@ class PrepareData:
         for l in self.label:
             labels_list_file.write(l + '\n')
         
-        dataset = "labels={0}\n"+\
+        dataset = ("labels={0}\n"+\
         "train={1}\n"+\
         "valid={2}\n"+\
         "backup=/home/mcg/darknet/train_data/backup_{3}\n"+\
         "classes=2\n" +\
         "upperbound=0.9\n"+\
         "early_stop=0\n"+\
-        "console=1\n".format(self.labels_list_save_name, 
+        "console=1\n").format(self.labels_list_save_name, 
                              self.train_list_save_name, 
                              self.valid_list_save_name, 
                              self.dataset_name)

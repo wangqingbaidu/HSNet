@@ -10,7 +10,6 @@ From Institute of Computing Technology
 import os, random, sys
 from sys import maxint
 import argparse
-import subprocess
 
 def color_print(text, color=None):
     try:
@@ -160,7 +159,7 @@ class PrepareData:
                              self.valid_list_save_name, 
                              self.args.name)
         dataset_file.write(dataset.replace('\t', ''))
-        subprocess.call("mkdir backup_%s" %self.args.name)
+        os.system("mkdir backup_%s" %self.args.name)
         
         train_list_file.close()
         valid_list_file.close()

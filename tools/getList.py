@@ -19,15 +19,7 @@ def color_print(text, color=None):
         print text
         
 class PrepareData:
-    def __init__(self,
-                 args = None,
-                 train_list_save_name = 'pnet_train.list',
-                 valid_list_save_name = 'pnet_valid.list',
-                 labels_list_save_name = 'pnet_labels.list',
-                 dataset_name = 'pnet.dataset',
-                 pic_format = ['bmp', 'jpg', 'jpeg', 'png']):
-        
-        
+    def __init__(self,args = None, pic_format = ['bmp', 'jpg', 'jpeg', 'png']):     
         self.args = args
         self.load_balance = args.balance
         self.debug = args.debug
@@ -35,10 +27,10 @@ class PrepareData:
         self.valid_ratio = args.ratio
         
         self.pic_format = pic_format
-        self.train_list_save_name = train_list_save_name
-        self.valid_list_save_name = valid_list_save_name
-        self.labels_list_save_name = labels_list_save_name
-        self.dataset_name = dataset_name
+        self.train_list_save_name = args.train_list_save_name
+        self.valid_list_save_name = args.valid_list_save_name
+        self.labels_list_save_name = args.labels_list_save_name
+        self.dataset_name = args.name + '.dataset'
         
         self.__valid_settings()
         
@@ -136,7 +128,7 @@ class PrepareData:
         train_list_combine = []
         for l in self.train_list:
             train_list_combine += self.train_list[l]
-            print 'label:', l, '; number:', len(self.train_list[l])
+            print 'label:%s\tnumber:%d' %(l, len(self.train_list[l]))
         random.shuffle(train_list_combine)
         
         train_index = int(len(train_list_combine) * (1 - self.valid_ratio))
@@ -167,7 +159,7 @@ class PrepareData:
               self.train_list_save_name, 
               self.valid_list_save_name, 
               self.dataset_name)
-        dataset_file.write(dataset)
+        dataset_file.write(dataset.replace('\t', ''))
         
         train_list_file.close()
         valid_list_file.close()
@@ -214,6 +206,13 @@ if __name__ == '__main__':
                         help = "Directory of all training data.")
     parser.add_argument("-n", "--name", default='pnet', 
                         help = "Name of this training data.")
+    parser.add_argument("--labels_list_save_name", default = 'pnet_labels.list',
+                        help = "File name of label list.")
+    parser.add_argument("--train_list_save_name", default = 'pnet_train.list',
+                        help = "File name of train list.")
+    parser.add_argument("--valid_list_save_name", default = 'pnet_valid.list',
+                        help = "File name of valid list.")
+    
     parser.add_argument("-label", nargs='*', default = [], 
                         help = "Labels of training data, if None, use all sub-directories as labels.")
     parser.add_argument("-ulabel", nargs='*', default = [],

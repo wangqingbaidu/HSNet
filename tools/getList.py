@@ -10,8 +10,6 @@ From Institute of Computing Technology
 import os, random, sys
 from sys import maxint
 import argparse
-from test.pystone import nargs
-
 
 def color_print(text, color=None):
     try:
@@ -30,7 +28,7 @@ class PrepareData:
         
         
         self.args = args
-        self.load_balance = args.b
+        self.load_balance = args.balance
         self.debug = args.debug
         self.unique_data = set(args.ulabel)
         self.valid_ratio = args.ratio
@@ -39,6 +37,7 @@ class PrepareData:
         self.train_list_save_name = train_list_save_name
         self.valid_list_save_name = valid_list_save_name
         self.lables_list_save_name = lables_list_save_name
+        self.__valid_settings()
         
         self.train_list = {}
         self.label_prog = {}
@@ -48,12 +47,16 @@ class PrepareData:
             self.dir2expand += self.data[k]
             self.train_list[k] = []
             self.label_prog[k] = set()
-            
-    def shuffle_train_data(self):
+    
+    def go(self):
+        self.__find_file()
+        self.__saveList()
+        
+    def __shuffle_train_data(self):
         for l in self.train_list:
             random.shuffle(self.train_list[l])
         
-    def balance_samples(self):
+    def __balance_samples(self):
         min_samples = maxint
         for l in self.train_list:
             if len(self.train_list[l]) < min_samples:
@@ -63,7 +66,7 @@ class PrepareData:
         for l in self.train_list:
             self.train_list[l] = self.train_list[l][:min_samples]
             
-    def balance_negative(self, label = 'nfuck'):
+    def __balance_negative(self, label = 'nfuck'):
         min_samples = 0
         for l in self.train_list:
             if l == label:
@@ -75,9 +78,9 @@ class PrepareData:
     
     def __get_file_label(self, fname = None):
         rct = None
-        for l in self.args.label:
+        for l in self.label:
             if l in fname:
-                if tct == None:
+                if rct == None:
                     rct = l
                 else:
                     color_print("Warning: %s ignored. Contains more than one label." %fname, 'yellow')
@@ -88,7 +91,7 @@ class PrepareData:
         return rct
         
     
-    def find_file(self):
+    def __find_file(self):
         cwd = os.getcwd()
         while len(self.dir2expand):
             td_dir = self.dir2expand.pop(0)
@@ -103,9 +106,9 @@ class PrepareData:
                             continue
                         
                         if label in self.unique_data: 
-                            progID = new_file_name.split('-')[-3]
+                            progID = f.split('-')[-3]
                             if not progID in self.label_prog[label]:
-                                self.train_list[label].append(new_file_name)
+                                self.train_list[label].append(fname)
                                 self.label_prog[label].add(progID)
                             else:
                                 continue
@@ -118,19 +121,14 @@ class PrepareData:
                 elif os.path.isdir(fname):
                     self.dir2expand.append(fname)
                     if self.debug:
-                        print 'dir:', fanme
+                        print 'dir:', fname
     
-    def saveList(self):
-        if len(self.train_labels) != len(self.train_labels):
-            print 'Number of train data and labels does not match!'
-            assert len(self.train_labels) == len(self.train_labels)
-        
-        self.shuffle_train_data()
-        
+    def __saveList(self):        
+        self.__shuffle_train_data()
         if self.load_balance:
-            self.balance_samples()
+            self.__balance_samples()
             
-        self.balance_negative(self.negative_label)
+#         self.balance_negative(self.negative_label)
         
         train_list_combine = []
         for l in self.train_list:
@@ -150,7 +148,7 @@ class PrepareData:
         for i in train_list_combine[train_index:]:
             valid_list_file.write(i + '\n')
         
-        for l in self.train_labels:
+        for l in self.label:
             labels_list_file.write(l + '\n')
         
         train_list_file.close()
@@ -162,71 +160,52 @@ class PrepareData:
             os.remove(self.train_list_save_name)
         elif self.valid_ratio == 0:            
             os.remove(self.valid_list_save_name)
-                        
-    def go(self):
-        self.genList()
-        self.saveList()
 
-    def valid_settings(self):
+    def __valid_settings(self):
         if not os.path.exists(self.args.dir):
             color_print("Path %s not exists!" %self.args.dir, 'red')
             exit(0)
                     
         self.data = {}
         self.dir_map_label = {}
-        for l in self.args.label:
+        self.label = self.args.label if self.args.label else os.listdir(args.dir)
+        for l in self.label:
             self.data[l] = []
         
 #         find dir label
         for d in os.listdir(self.args.dir):
-            if os.path.isdir(d):
-                count = 0
-                for l in self.args.label:
+            if os.path.isdir(os.path.join(self.args.dir, d)):
+                label_count = []
+                for l in self.label:
                     if l in d:
-                        self.data[l].append(d)
-                        self.dir_map_label[d] = l
-                        count += 1
-                if count > 1:
-                    color_print("Dir %s can't contains more than one label." %d, self.args.label, 'red')
+                        self.data[l].append(os.path.join(self.args.dir, d))
+                        self.dir_map_label[os.path.join(self.args.dir, d)] = l
+                        label_count.append(l)
+                if len(label_count) > 1:
+                    color_print("Dir %s can't contains more than one label. %s" %(d, label_count), 'red')
                     exit(0)
-                else:
-                    color_print("Warning: %s in %s contains no label" %(d, self,args.dir), 'yellow')
+                elif len(label_count) == 0:
+                    color_print("Warning: Subdir %s in %s contains no label" %(d, self.args.dir), 'yellow')
         
         if not self.data:
-            color_print("No data in %s on given labels %s." %(self.args.dir, ' '.join(self.args.label)), 'red')
+            color_print("No data in %s on given labels %s." %(self.args.dir, ' '.join(self.label)), 'red')
             
 if __name__ == '__main__':
-    import argparse
     parser = argparse.ArgumentParser(description='Generate training list.')
-    parser.add_argument("dir", default=None)
-    parser.add_argument("-label", nargs='*')
-    parser.add_argument("-ulabel", nargs='*')
-    parser.add_argument('-debug', action = 'store_true')
-    parser.add_argument("-b", "-balance", action = 'store_true')
-    parser.add_argument('-r', '--ratio', default = 0.1, type=float)
+    parser.add_argument("dir", default=None, 
+                        help = "Directory of all training data.")
+    parser.add_argument("-label", nargs='*', default = [], 
+                        help = "Labels of training data, if None, use all sub-directories as labels.")
+    parser.add_argument("-ulabel", nargs='*', default = [],
+                        help = "Unique data which remove duplicate data in the given label.")
+    parser.add_argument('-debug', action = 'store_true',
+                        help = "Show data info.")
+    parser.add_argument("-b", "--balance", action = 'store_true',
+                        help = "Balance of the samples of each label.")
+    parser.add_argument('-r', '--ratio', default = 0.1, type=float,
+                        help = "How many samples are to be used as validation data.")
     args = parser.parse_args()
-
-    data = {}
-    for l in args.label:
-        data[l] = []
     
-    if len(sys.argv) > 1:
-        if (len(sys.argv) / 2 == 0):
-            print 'Input parameters must be label path pair!'
-            exit()
-        else:
-            data = {}
-            label = None
-            x = sys.argv[1:]
-            lp = [(x[2 * i], x[2 * i + 1]) for i in range(len(x) / 2)]
-            for label, path in lp:
-                if (os.path.exists(path)):
-                    data[label] = path
-                else:
-                    print 'Label %s, Path %s not exist!' %(label, path)
-                    exit()
-
-    print data
-    p = PrepareData(data, unique_data= unique_data, debug=args.debug, valid_ratio = 0.1)
+    p = PrepareData(args=args)
     p.go()
         

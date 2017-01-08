@@ -171,6 +171,8 @@ class PrepareData:
         elif self.valid_ratio == 0:            
             os.remove(self.valid_list_save_name)
 
+        print './darknet -i 0 classifier train', self.dataset_name,'cfgfile -clear '
+        
     def __valid_settings(self):
         if not os.path.exists(self.args.dir):
             color_print("Path %s not exists!" %self.args.dir, 'red')

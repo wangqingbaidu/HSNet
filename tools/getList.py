@@ -157,8 +157,9 @@ class PrepareData:
         "console=1\n").format(self.labels_list_save_name, 
                              self.train_list_save_name, 
                              self.valid_list_save_name, 
-                             self.dataset_name)
+                             self.args.name)
         dataset_file.write(dataset.replace('\t', ''))
+        subprocess.call("mkdir backup_%s" %self.args.name)
         
         train_list_file.close()
         valid_list_file.close()

@@ -9,6 +9,7 @@ From Institute of Computing Technology
 '''
 import os, sys
 import argparse
+import subprocess
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Get best model")
     parser.add_argument("dir", help='Directory of weights file.', default='.')
@@ -21,7 +22,8 @@ if __name__ == '__main__':
     weights_list = []
     cfgfile = args.cfg
     if os.path.exists(args.dir):
-        weights_list = os.system('ls ' + os.path.join(args.dir, '*.weights'))
+        weights_list = subprocess.Popen('ls ' + os.path.join(args.dir, '*.weights'), 
+                                        shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout.readlines()
     
     if len(weights_list) == 0:
         print 'No weights file!'

@@ -12,7 +12,6 @@
 #include "local_layer.h"
 #include "convolutional_layer.h"
 #include "activation_layer.h"
-#include "normalization_layer.h"
 #include "batchnorm_layer.h"
 #include "maxpool_layer.h"
 #include "avgpool_layer.h"

@@ -103,8 +103,6 @@ char *get_layer_string(LAYER_TYPE a)
             return "route";
         case SHORTCUT:
             return "shortcut";
-        case NORMALIZATION:
-            return "normalization";
         case BATCHNORM:
             return "batchnorm";
         default:
@@ -549,8 +547,6 @@ int resize_network(network *net, int w, int h)
             resize_maxpool_layer(&l, w, h);
         }else if(l.type == AVGPOOL){
             resize_avgpool_layer(&l, w, h);
-        }else if(l.type == NORMALIZATION){
-            resize_normalization_layer(&l, w, h);
         }else if(l.type == COST){
             resize_cost_layer(&l, inputs);
         }else{

@@ -49,8 +49,6 @@ LAYER_TYPE string_to_layer_type(char * type)
     if (strcmp(type, "[avg]")==0
             || strcmp(type, "[avgpool]")==0) return AVGPOOL;
     if (strcmp(type, "[dropout]")==0) return DROPOUT;
-    if (strcmp(type, "[lrn]")==0
-            || strcmp(type, "[normalization]")==0) return NORMALIZATION;
     if (strcmp(type, "[batchnorm]")==0) return BATCHNORM;
     if (strcmp(type, "[soft]")==0
             || strcmp(type, "[softmax]")==0) return SOFTMAX;
@@ -242,16 +240,6 @@ avgpool_layer parse_avgpool(list *options, size_params params)
     return layer;
 }
 
-layer parse_normalization(list *options, size_params params)
-{
-    float alpha = option_find_float(options, "alpha", .0001);
-    float beta =  option_find_float(options, "beta" , .75);
-    float kappa = option_find_float(options, "kappa", 1);
-    int size = option_find_int(options, "size", 5);
-    layer l = make_normalization_layer(params.batch, params.w, params.h, params.c, size, alpha, beta, kappa);
-    return l;
-}
-
 layer parse_batchnorm(list *options, size_params params)
 {
     layer l = make_batchnorm_layer(params.batch, params.w, params.h, params.c);
@@ -417,8 +405,6 @@ network parse_network_cfg(char *filename)
         }else if(lt == SOFTMAX){
             l = parse_softmax(options, params);
             net.hierarchy = l.softmax_tree;
-        }else if(lt == NORMALIZATION){
-            l = parse_normalization(options, params);
         }else if(lt == BATCHNORM){
             l = parse_batchnorm(options, params);
         }else if(lt == MAXPOOL){
@@ -516,8 +502,6 @@ network* parse_network_cfg2pointer(char *filename)
         }else if(lt == SOFTMAX){
             l = parse_softmax(options, params);
             net->hierarchy = l.softmax_tree;
-        }else if(lt == NORMALIZATION){
-            l = parse_normalization(options, params);
         }else if(lt == BATCHNORM){
             l = parse_batchnorm(options, params);
         }else if(lt == MAXPOOL){

@@ -9,24 +9,15 @@
 
 #include "crop_layer.h"
 #include "connected_layer.h"
-#include "gru_layer.h"
-#include "rnn_layer.h"
-#include "crnn_layer.h"
 #include "local_layer.h"
 #include "convolutional_layer.h"
 #include "activation_layer.h"
-#include "detection_layer.h"
-#include "region_layer.h"
 #include "normalization_layer.h"
 #include "batchnorm_layer.h"
 #include "maxpool_layer.h"
-#include "reorg_layer.h"
 #include "avgpool_layer.h"
 #include "cost_layer.h"
 #include "softmax_layer.h"
-#include "dropout_layer.h"
-#include "route_layer.h"
-#include "shortcut_layer.h"
 
 int get_current_batch(network net)
 {
@@ -91,12 +82,6 @@ char *get_layer_string(LAYER_TYPE a)
             return "deconvolutional";
         case CONNECTED:
             return "connected";
-        case RNN:
-            return "rnn";
-        case GRU:
-            return "gru";
-        case CRNN:
-            return "crnn";
         case MAXPOOL:
             return "maxpool";
         case REORG:
@@ -563,8 +548,6 @@ int resize_network(network *net, int w, int h)
             resize_crop_layer(&l, w, h);
         }else if(l.type == MAXPOOL){
             resize_maxpool_layer(&l, w, h);
-        }else if(l.type == REORG){
-            resize_reorg_layer(&l, w, h);
         }else if(l.type == AVGPOOL){
             resize_avgpool_layer(&l, w, h);
         }else if(l.type == NORMALIZATION){
@@ -607,19 +590,6 @@ int get_network_output_size(network net)
 int get_network_input_size(network net)
 {
     return net.layers[0].inputs;
-}
-
-detection_layer get_network_detection_layer(network net)
-{
-    int i;
-    for(i = 0; i < net.n; ++i){
-        if(net.layers[i].type == DETECTION){
-            return net.layers[i];
-        }
-    }
-    fprintf(stderr, "Detection layer not found!!\n");
-    detection_layer l = {0};
-    return l;
 }
 
 image get_network_image_layer(network net, int i)

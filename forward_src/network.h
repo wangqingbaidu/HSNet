@@ -5,7 +5,6 @@
 #include "image.h"
 #include "layer.h"
 #include "data.h"
-#include "tree.h"
 
 typedef enum {
     CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM

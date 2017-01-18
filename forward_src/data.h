@@ -24,7 +24,6 @@ typedef struct{
     matrix y;
     int shallow;
     int *num_boxes;
-    box **boxes;
 } data;
 
 typedef enum {
@@ -62,12 +61,6 @@ typedef struct load_args{
     tree *hierarchy;
 } load_args;
 
-typedef struct{
-    int id;
-    float x,y,w,h;
-    float left, right, top, bottom;
-} box_label;
-
 void free_data(data d);
 
 pthread_t load_data(load_args args);
@@ -85,7 +78,6 @@ data load_data_super(char **paths, int n, int m, int w, int h, int scale);
 data load_data_augment(char **paths, int n, int m, char **labels, int k, tree *hierarchy, int min, int max, int size, float angle, float aspect, float hue, float saturation, float exposure);
 data load_go(char *filename);
 
-box_label *read_boxes(char *filename, int *n);
 data load_cifar10_data(char *filename);
 data load_all_cifar10();
 

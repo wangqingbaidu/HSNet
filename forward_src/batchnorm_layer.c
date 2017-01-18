@@ -12,12 +12,12 @@ layer make_batchnorm_layer(int batch, int w, int h, int c)
     layer.w = layer.out_w = w;
     layer.c = layer.out_c = c;
     layer.output = calloc(h * w * c * batch, sizeof(float));
-    layer.delta  = calloc(h * w * c * batch, sizeof(float));
+//    layer.delta  = calloc(h * w * c * batch, sizeof(float));
     layer.inputs = w*h*c;
     layer.outputs = layer.inputs;
 
-    layer.scales = calloc(c, sizeof(float));
-    layer.scale_updates = calloc(c, sizeof(float));
+//    layer.scales = calloc(c, sizeof(float));
+//    layer.scale_updates = calloc(c, sizeof(float));
     int i;
     for(i = 0; i < c; ++i){
         layer.scales[i] = 1;

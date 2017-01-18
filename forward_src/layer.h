@@ -148,8 +148,8 @@ struct layer{
     float *col_image;
     int   * input_layers;
     int   * input_sizes;
-    float * delta;
     float * output;
+    float * delta;
     float * squared;
     float * norms;
 

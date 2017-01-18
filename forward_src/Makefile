@@ -31,11 +31,6 @@ $(OBJDIR)%.o: %.c $(DEPS)
 $(OBJDIR)%.o: %.cu $(DEPS)
 	$(NVCC) $(ARCH) $(COMMON) --compiler-options "$(CFLAGS)" -c $< -o $@
 
-obj:
-	mkdir -p obj
-results:
-	mkdir -p results
-
 .PHONY: clean
 
 clean:

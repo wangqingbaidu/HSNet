@@ -21,7 +21,6 @@ layer make_activation_layer(int batch, int inputs, ACTIVATION activation)
     l.output = calloc(batch*inputs, sizeof(float*));
 
     l.forward = forward_activation_layer;
-    l.backward = backward_activation_layer;
 #ifdef GPU
     l.forward_gpu = forward_activation_layer_gpu;
     l.backward_gpu = backward_activation_layer_gpu;

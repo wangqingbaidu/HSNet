@@ -6,7 +6,6 @@
 #include <float.h>
 #include <string.h>
 #include <math.h>
-#include "box.h"
 
 typedef struct {
     int h;

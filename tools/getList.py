@@ -222,9 +222,9 @@ if __name__ == '__main__':
     parser.add_argument('-debug', action = 'store_true',
                         help = "Show data info.")
     parser.add_argument("-b", "--balance", action = 'store_true',
-                        help = "Balance of the samples of each label.")
+                        help = "Balance the samples of each label.")
     parser.add_argument('-r', '--ratio', default = 0.1, type=float,
-                        help = "How many samples are to be used as validation data.")
+                        help = "How many samples to be used as validation data.")
     args = parser.parse_args()
     
     p = PrepareData(args=args)

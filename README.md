@@ -3,7 +3,8 @@
 
 
 目录结构:
-"""python
+""" python
+
 RedNet
 |___forward_src 			前馈网络模型代码
 	|___pnet.c				动态库入口文件，其中封装了模型加载、预测等相关接口

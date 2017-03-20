@@ -3,6 +3,7 @@
 
 
 目录结构:
+"""python
 RedNet
 |___forward_src 			前馈网络模型代码
 	|___pnet.c				动态库入口文件，其中封装了模型加载、预测等相关接口
@@ -28,9 +29,12 @@ RedNet
 
 |___trainNet.sh				训练网络的启动脚本
 	
-	
+"""
 tips:
 1. 所有的脚本通过-h可以输出参数使用说明。
+
 2. Make文件中EXEC=../train_data/darknet用于执行生成的文件目录。
+
 3. 生成的可执行程序分类任务使用classifier，训练使用train，验证使用valid，预测使用label。
+
 	例如训练网络使用./darknet -i 0 classifier train pnet.dataset ./cfg/darknet_es_shortcut_22.cfg
